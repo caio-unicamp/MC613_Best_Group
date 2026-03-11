@@ -80,7 +80,7 @@
         <mxCell id="letdwA3TFawspiuKEbTb-17" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Atualiza Saldo Restante" vertex="1">
           <mxGeometry height="80" width="120" x="359.97" y="280" as="geometry" />
         </mxCell>
-        <mxCell id="letdwA3TFawspiuKEbTb-55" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Pressiona Key(0) (Avançar)" vertex="1">
+        <mxCell id="letdwA3TFawspiuKEbTb-55" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Pressiona KEY0 (Avançar)" vertex="1">
           <mxGeometry height="30" width="105" x="416" y="124" as="geometry" />
         </mxCell>
         <mxCell id="letdwA3TFawspiuKEbTb-56" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div&gt;Pressiona KEY1&lt;/div&gt;&lt;div&gt;(Cancelar)&lt;/div&gt;" vertex="1">
