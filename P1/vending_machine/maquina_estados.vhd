@@ -17,7 +17,7 @@ end maquina_estados;
 
 architecture Behavioral of maquina_estados is
 
-    type estado_tipo is (escolher_produto, inserir_dinheiro, dispensar, devolver);
+    type estado_tipo is (escolher_produto, inserir_dinheiro, dispensar, devolver_normal, devolver_troco);
     signal estado_atual, estado_proximo : estado_tipo;
 
 begin
@@ -49,7 +49,7 @@ begin
                     if valor_acumulado = '0' then
                         estado_proximo <= escolher_produto;
                     else
-                        estado_proximo <= devolver;
+                        estado_proximo <= devolver_normal;
                     end if;
                 elsif avancar = '1' then
                     clr_acumula <= '1';
@@ -59,10 +59,9 @@ begin
 
             when dispensar =>
                 if troco = '0' then
-                    -- acender coisinha
                     estado_proximo <= escolher_produto;
                 else
-                    estado_proximo <= devolver;
+                    estado_proximo <= devolver_troco;
                 end if;
 
             when devolver =>
