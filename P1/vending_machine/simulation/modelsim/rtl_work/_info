@@ -22,9 +22,9 @@ Voh07g`EUPmz_3_`nE_PcF2
 !s100 d^FQS?QR=[1ViUIj;Io[X3
 Z7 OV;C;10.5b;63
 33
-Z8 !s110 1773860309
+Z8 !s110 1773861065
 !i10b 1
-Z9 !s108 1773860309.000000
+Z9 !s108 1773861065.000000
 Z10 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd|
 Z11 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd|
 !i113 1
@@ -132,7 +132,7 @@ R25
 R12
 R13
 Ehex_display_valor_tb
-Z26 w1773860300
+Z26 w1773861057
 Z27 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
 R2
 R3
@@ -146,11 +146,11 @@ V9IA@KXZdd5=`;6;>_Mn2Y3
 !s100 ZE@ig8?gT_gJR[b3N8Y<E1
 R7
 33
-R8
+Z30 !s110 1773861066
 !i10b 1
 R9
-Z30 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
-Z31 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
+Z31 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
+Z32 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
 !i113 1
 R12
 R13
@@ -162,15 +162,15 @@ R4
 DEx4 work 20 hex_display_valor_tb 0 22 9IA@KXZdd5=`;6;>_Mn2Y3
 l26
 L10
-VW`WMWSB;N3SRV4aHTc7O;3
-!s100 J5If<Hg]Umem@CgiU9[II0
+VgX_4U;z;hiZVR`@_oP5`<3
+!s100 54o=RJj5if1648lk?ihfB3
 R7
 33
-R8
+R30
 !i10b 1
 R9
-R30
 R31
+R32
 !i113 1
 R12
 R13

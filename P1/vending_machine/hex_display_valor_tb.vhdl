@@ -46,6 +46,7 @@ begin
             write(line_out, string'("Entrada: "));
             hwrite(line_out, test_input);
             write(line_out, string'(" | Saída: "));
+				writeline(output, line_out);
             write(line_out, test_output_0);
             writeline(output, line_out);
 				write(line_out, test_output_1);
