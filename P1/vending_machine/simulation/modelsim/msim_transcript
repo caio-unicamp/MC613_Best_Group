@@ -11,7 +11,7 @@
 # 
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
@@ -19,22 +19,22 @@
 # -- Loading package NUMERIC_STD
 # -- Compiling entity bin11_to_bcd4
 # -- Compiling architecture rtl of bin11_to_bcd4
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin2hex.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin2hex.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
 # -- Loading package std_logic_1164
 # -- Compiling entity bin2hex
 # -- Compiling architecture rtl of bin2hex
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
@@ -44,23 +44,23 @@
 # -- Compiling architecture Behavioral of hex_display_valor
 # -- Loading entity bin11_to_bcd4
 # -- Loading entity bin2hex
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # 
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin2hex.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin2hex.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
 # -- Loading package std_logic_1164
 # -- Compiling entity bin2hex
 # -- Compiling architecture rtl of bin2hex
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
@@ -68,11 +68,11 @@
 # -- Loading package NUMERIC_STD
 # -- Compiling entity bin11_to_bcd4
 # -- Compiling architecture rtl of bin11_to_bcd4
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor.vhd}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor.vhd 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
@@ -82,11 +82,11 @@
 # -- Compiling architecture Behavioral of hex_display_valor
 # -- Loading entity bin11_to_bcd4
 # -- Loading entity bin2hex
-# End time: 16:11:05 on Mar 18,2026, Elapsed time: 0:00:00
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl}
 # Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
-# Start time: 16:11:05 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl 
 # -- Loading package STANDARD
 # -- Loading package TEXTIO
@@ -95,12 +95,12 @@
 # -- Loading package std_logic_textio
 # -- Compiling entity hex_display_valor_tb
 # -- Compiling architecture Behavioral of hex_display_valor_tb
-# End time: 16:11:06 on Mar 18,2026, Elapsed time: 0:00:01
+# End time: 16:27:19 on Mar 18,2026, Elapsed time: 0:00:00
 # Errors: 0, Warnings: 0
 # 
 # vsim -t 1ps -L altera -L lpm -L sgate -L altera_mf -L altera_lnsim -L cyclonev -L rtl_work -L work -voptargs="+acc"  hex_display_valor_tb
 # vsim -t 1ps -L altera -L lpm -L sgate -L altera_mf -L altera_lnsim -L cyclonev -L rtl_work -L work -voptargs=""+acc"" hex_display_valor_tb 
-# Start time: 16:11:06 on Mar 18,2026
+# Start time: 16:27:19 on Mar 18,2026
 # Loading std.standard
 # Loading std.textio(body)
 # Loading ieee.std_logic_1164(body)
@@ -911,3 +911,5 @@
 # 1111001
 # 1000000
 # Teste concluído
+# End time: 16:28:05 on Mar 18,2026, Elapsed time: 0:00:46
+# Errors: 0, Warnings: 19

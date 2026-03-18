@@ -22,9 +22,9 @@ Voh07g`EUPmz_3_`nE_PcF2
 !s100 d^FQS?QR=[1ViUIj;Io[X3
 Z7 OV;C;10.5b;63
 33
-Z8 !s110 1773861065
+Z8 !s110 1773862039
 !i10b 1
-Z9 !s108 1773861065.000000
+Z9 !s108 1773862039.000000
 Z10 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd|
 Z11 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/bin11_to_bcd4.vhd|
 !i113 1
@@ -89,7 +89,7 @@ R19
 R12
 R13
 Ehex_display_valor
-Z21 w1773859544
+Z21 w1773862017
 R2
 R3
 R4
@@ -98,8 +98,8 @@ Z22 8/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_val
 Z23 F/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor.vhd
 l0
 L5
-VR12AanS:8`?3XM9lGfE^K0
-!s100 hS^@GnOViUo7ojRaUiH6N2
+VN6JNl=MI6mLD95gzg77CS1
+!s100 [@^UGLA1V3JDZB[CdSRU^2
 R7
 33
 R8
@@ -116,11 +116,11 @@ R14
 R2
 R3
 R4
-DEx4 work 17 hex_display_valor 0 22 R12AanS:8`?3XM9lGfE^K0
+DEx4 work 17 hex_display_valor 0 22 N6JNl=MI6mLD95gzg77CS1
 l17
 L15
-VekLc6SnGTFOA?zbHiehj`0
-!s100 ?mPJhiI:6E;;75AO2L<n=2
+VH7oEM<;9BZ0bTA]8m^Fzg2
+!s100 >GYFNdj>2]WRjWL@N[4NE2
 R7
 33
 R8
@@ -132,7 +132,7 @@ R25
 R12
 R13
 Ehex_display_valor_tb
-Z26 w1773861057
+Z26 w1773862019
 Z27 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
 R2
 R3
@@ -146,11 +146,11 @@ V9IA@KXZdd5=`;6;>_Mn2Y3
 !s100 ZE@ig8?gT_gJR[b3N8Y<E1
 R7
 33
-Z30 !s110 1773861066
+R8
 !i10b 1
 R9
-Z31 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
-Z32 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
+Z30 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
+Z31 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P1/vending_machine/hex_display_valor_tb.vhdl|
 !i113 1
 R12
 R13
@@ -162,15 +162,15 @@ R4
 DEx4 work 20 hex_display_valor_tb 0 22 9IA@KXZdd5=`;6;>_Mn2Y3
 l26
 L10
-VgX_4U;z;hiZVR`@_oP5`<3
-!s100 54o=RJj5if1648lk?ihfB3
+VdlHAkGV]6`oh3bOk9elQh2
+!s100 =m:a2mMHS=hl00O]aF_EV2
 R7
 33
-R30
+R8
 !i10b 1
 R9
+R30
 R31
-R32
 !i113 1
 R12
 R13

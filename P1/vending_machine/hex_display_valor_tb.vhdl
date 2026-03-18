@@ -11,10 +11,10 @@ architecture Behavioral of hex_display_valor_tb is
     component hex_display_valor
         Port (
            bin_in  : in  std_logic_vector(10 downto 0);   -- milhar|centena|dezena|unidade  
-			  HEX0 : out STD_LOGIC_VECTOR(6 downto 0);     -- Displays para mostrar resultado
-			  HEX1 : out STD_LOGIC_VECTOR(6 downto 0);
-			  HEX2 : out STD_LOGIC_VECTOR(6 downto 0);
-			  HEX3 : out STD_LOGIC_VECTOR(6 downto 0)
+			  HEX_0 : out STD_LOGIC_VECTOR(6 downto 0);     -- Displays para mostrar resultado
+			  HEX_1 : out STD_LOGIC_VECTOR(6 downto 0);
+			  HEX_2 : out STD_LOGIC_VECTOR(6 downto 0);
+			  HEX_3 : out STD_LOGIC_VECTOR(6 downto 0)
         );
     end component;
     
@@ -27,10 +27,10 @@ begin
     uut: hex_display_valor
         port map (
 			  bin_in  => test_input,   -- milhar|centena|dezena|unidade  
-			  HEX0 => test_output_0,    -- Displays para mostrar resultado
-			  HEX1 => test_output_1, 
-			  HEX2 => test_output_2,
-			  HEX3 => test_output_3
+			  HEX_0 => test_output_0,    -- Displays para mostrar resultado
+			  HEX_1 => test_output_1, 
+			  HEX_2 => test_output_2,
+			  HEX_3 => test_output_3
         );
     
     test_process: process
