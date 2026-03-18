@@ -1,0 +1,75 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity vending_machine is
+    Port (
+        codigo_produto : in  STD_LOGIC_VECTOR(3 downto 0);
+        valor_produto  : out STD_LOGIC_VECTOR(10 downto 0)
+    );
+end vending_machine;
+
+architecture Behavioral of vending_machine is
+begin
+
+process(codigo_produto)
+begin
+
+    case codigo_produto is
+
+        when "0000" =>
+            valor_produto <= std_logic_vector(to_unsigned(125,11));
+
+        when "0001" =>
+            valor_produto <= std_logic_vector(to_unsigned(300,11));
+
+        when "0010" =>
+            valor_produto <= std_logic_vector(to_unsigned(175,11));
+
+        when "0011" =>
+            valor_produto <= std_logic_vector(to_unsigned(450,11));
+
+        when "0100" =>
+            valor_produto <= std_logic_vector(to_unsigned(225,11));
+        
+        when "0101" =>
+            valor_produto <= std_logic_vector(to_unsigned(350,11));
+
+        when "0110" =>
+            valor_produto <= std_logic_vector(to_unsigned(250,11));
+        
+        when "0111" =>
+            valor_produto <= std_logic_vector(to_unsigned(425,11));
+
+        when "1000" =>
+            valor_produto <= std_logic_vector(to_unsigned(500,11));
+
+        when "1001" =>
+            valor_produto <= std_logic_vector(to_unsigned(325,11));
+
+        when "1010" =>
+            valor_produto <= std_logic_vector(to_unsigned(600,11));
+
+        when "1011" =>
+            valor_produto <= std_logic_vector(to_unsigned(275,11));
+
+        when "1100" =>
+            valor_produto <= std_logic_vector(to_unsigned(700,11));
+
+        when "1101" =>
+            valor_produto <= std_logic_vector(to_unsigned(475,11));
+
+        when "1110" =>
+            valor_produto <= std_logic_vector(to_unsigned(525,11));
+
+        when "1111" =>
+            valor_produto <= std_logic_vector(to_unsigned(800,11));
+
+        when others =>
+            valor_produto <= (others => '0');
+
+    end case;
+
+end process;
+
+end Behavioral;
