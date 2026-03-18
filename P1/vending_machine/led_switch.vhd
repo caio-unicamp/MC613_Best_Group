@@ -1,5 +1,4 @@
 -- Módulo que conecta switches aos LEDs
--- Atividade 1 - Primeiro circuito
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
