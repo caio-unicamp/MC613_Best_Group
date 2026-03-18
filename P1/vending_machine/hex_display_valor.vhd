@@ -31,19 +31,19 @@ begin
 	
 	bin2hex1: entity work.bin2hex
 		port map (
-			BIN => bcd_out(3 downto 0),
+			BIN => bcd_out(7 downto 4),
 			HEX => HEX1
 		);
 		
 	bin2hex2: entity work.bin2hex
 		port map (
-			BIN => bcd_out(3 downto 0),
+			BIN => bcd_out(11 downto 8),
 			HEX => HEX2
 		);
 	
 	bin2hex3: entity work.bin2hex
 		port map (
-			BIN => bcd_out(3 downto 0),
+			BIN => bcd_out(15 downto 12),
 			HEX => HEX3
 		);	
 	
