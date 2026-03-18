@@ -17,7 +17,7 @@ begin
     begin
         if rising_edge(clk) then
             estado_anterior <= estado_atual;
-            estado_atual    <= botao_in;
+            estado_atual    <= botao_in; -- Pressionou => estado_atual = 0
         end if;
     end process;
 
