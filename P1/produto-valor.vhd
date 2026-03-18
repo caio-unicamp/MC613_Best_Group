@@ -18,52 +18,52 @@ begin
     case codigo_produto is
 
         when "0000" =>
-            valor_produto <= std_logic_vector(to_unsigned(125,11));
+            valor_produto <= "00001111101"; -- 125
 
         when "0001" =>
-            valor_produto <= std_logic_vector(to_unsigned(300,11));
+            valor_produto <= "00100101100"; -- 300
 
         when "0010" =>
-            valor_produto <= std_logic_vector(to_unsigned(175,11));
+            valor_produto <= "00010101111"; -- 175
 
         when "0011" =>
-            valor_produto <= std_logic_vector(to_unsigned(450,11));
+            valor_produto <= "00111000010"; -- 450
 
         when "0100" =>
-            valor_produto <= std_logic_vector(to_unsigned(225,11));
+            valor_produto <= "00011100001"; -- 225
         
         when "0101" =>
-            valor_produto <= std_logic_vector(to_unsigned(350,11));
+            valor_produto <= "00101011110"; -- 350
 
         when "0110" =>
-            valor_produto <= std_logic_vector(to_unsigned(250,11));
+            valor_produto <= "00011111010"; -- 250
         
         when "0111" =>
-            valor_produto <= std_logic_vector(to_unsigned(425,11));
+            valor_produto <= "00110101001"; -- 425
 
         when "1000" =>
-            valor_produto <= std_logic_vector(to_unsigned(500,11));
+            valor_produto <= "00111110100"; -- 500
 
         when "1001" =>
-            valor_produto <= std_logic_vector(to_unsigned(325,11));
+            valor_produto <= "00101000101"; -- 325
 
         when "1010" =>
-            valor_produto <= std_logic_vector(to_unsigned(600,11));
+            valor_produto <= "01001011000"; -- 600
 
         when "1011" =>
-            valor_produto <= std_logic_vector(to_unsigned(275,11));
+            valor_produto <= "00100010011"; -- 275
 
         when "1100" =>
-            valor_produto <= std_logic_vector(to_unsigned(700,11));
+            valor_produto <= "01010111100"; -- 700
 
         when "1101" =>
-            valor_produto <= std_logic_vector(to_unsigned(475,11));
+            valor_produto <= "00111011011"; -- 475
 
         when "1110" =>
-            valor_produto <= std_logic_vector(to_unsigned(525,11));
+            valor_produto <= "01000001101"; -- 525
 
         when "1111" =>
-            valor_produto <= std_logic_vector(to_unsigned(800,11));
+            valor_produto <= "01100100000"; -- 800
 
         when others =>
             valor_produto <= (others => '0');

@@ -5,7 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity maquina_acumulador is
     Port (
         clk             : in  STD_LOGIC;
-        reset           : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
+        clr_acumula           : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
         
         -- Sinais de Controle (vindos da Máquina de Estados)
         enable_acumula      : in  STD_LOGIC; -- Disparado quando pulso_out = '1' (gerou um clock forçado) e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
@@ -35,7 +35,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if reset = '1' then
+            if clr_acumula = '1' then
                 acumulador <= (others => '0');
             elsif enable_acumula = '1' then
                 acumulador <= acumulador + unsigned(valor_moeda);

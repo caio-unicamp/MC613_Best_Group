@@ -11,7 +11,7 @@ end detector_borda;
 
 architecture Behavioral of detector_borda is
     signal estado_atual    : STD_LOGIC := '1'; -- Botão solto
-    signal estado_anterior : STD_LOGIC := '1';
+    signal estado_anterior : STD_LOGIC := '1'; 
 begin
     process(clk)
     begin
