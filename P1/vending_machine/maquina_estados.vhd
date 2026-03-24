@@ -10,8 +10,10 @@ entity maquina_estados is
         valor_acumulado  : in  STD_LOGIC_VECTOR(10 downto 0);
         saldo_suficiente : in  STD_LOGIC_VECTOR(10 downto 0);
         troco            : in  STD_LOGIC_VECTOR(10 downto 0);
+        done_timer             : in STD_LOGIC;    -- Recebido pelo contador de 1s quando ele encerra
         estado_atual     : out STD_LOGIC_VECTOR(2 downto 0);
-        clr_acumula      : out STD_LOGIC
+        clr_acumula      : out STD_LOGIC;
+        reset_timer      : out STD_LOGIC    -- Envia para o contador 
     );
 end maquina_estados;
 
