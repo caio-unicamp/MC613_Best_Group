@@ -121,7 +121,7 @@ begin
         );
 
     -- 10. Feedback visual nos LEDs
-    LEDR(0) <= '1' when s_estado = "010" else '0'; -- "010" é o estado 'dispensar'
+    LEDR(0) <= '1' when (s_estado = "010" or s_estado = "100") else '0'; -- 'dispensar' ou devolver troco
     LEDR(1) <= '1' when (s_estado = "011" or s_estado = "100") else '0'; -- 'devolver_normal' ou 'devolver_troco'
 
 end Behavioral;

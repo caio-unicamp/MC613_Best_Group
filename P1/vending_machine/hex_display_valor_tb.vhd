@@ -39,8 +39,8 @@ begin
         write(line_out, string'("Testando bin2hex..."));
         writeline(output, line_out);
         
-        -- Loop de 0 a 15
-        for i in 0 to 150 loop
+        -- Loop de 0 a 150
+        for i in 0 to 1500 loop
             test_input <= std_logic_vector(to_unsigned(i, 11));
             wait for 10 ns;  -- Aguarda para o sinal estabilizar
             write(line_out, string'("Entrada: "));
