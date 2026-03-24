@@ -113,7 +113,7 @@ begin
             HEX_0 => HEX0, HEX_1 => HEX1, HEX_2 => HEX2, HEX_3 => HEX3
         );
 
-    -- 9. Mostrar o estado atual no HEX5
+    -- 9. Mostrar o código do produto no HEX5
     display_estado: entity work.bin2hex
         port map(
             BIN => SW(3 downto 0),
