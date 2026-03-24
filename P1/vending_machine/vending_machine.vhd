@@ -74,8 +74,7 @@ begin
             avancar => s_avancar,
             cancelar => s_cancelar,
             valor_acumulado => s_valor_acumulado,
-            saldo_suficiente => s_saldo_restante, -- Usado para lógica interna
-            troco => s_valor_troco,
+            venda_concluida => s_venda_concluida,
             done_timer => s_done_timer,
             reset_timer => s_reset_timer,
             estado_out => s_estado,
