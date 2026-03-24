@@ -15,18 +15,18 @@ architecture Behavioral of delay_1s is
     constant MAX_COUNT : unsigned(25 downto 0) := to_unsigned(50000000 - 1, 26);
 begin
 
-process(clk, reset)
+process(clk, reset_timer)
 begin
-    if reset = '1' then
+    if reset_timer = '1' then
         count <= (others => '0');
-        done  <= '0';
+        done_timer  <= '0';
     elsif rising_edge(clk) then
         if count = MAX_COUNT then
-            done <= '1';           -- passou 1 segundo
+            done_timer <= '1';           -- passou 1 segundo
             count <= (others => '0');
         else
             count <= count + 1;
-            done <= '0';
+            done_timer <= '0';
         end if;
     end if;
 end process;
