@@ -10,6 +10,7 @@ entity maquina_estados is
         cancelar         : in  STD_LOGIC;
         -- Entradas vindas da máquina acumuladora
         valor_acumulado  : in STD_LOGIC_VECTOR(10 downto 0);
+        troco            : in STD_LOGIC_VECTOR(10 downto 0);
         venda_concluida  : in STD_LOGIC;
         -- Sinais do Timer
         done_timer       : in STD_LOGIC;    -- Recebido pelo contador de 1s (1 = acabou)
@@ -68,7 +69,7 @@ begin
                 end if;
 
             when dispensar =>   
-                reset_timer <= '0'  -- Reseta o cronômetro de 1s
+                reset_timer <= '0';  -- Reseta o cronômetro de 1s
                 if done_timer = '0' then    -- Depois que passar 1s
                     if troco = (others => '0') then
                         clr_acumula <= '1'; -- Zera o acumulador
