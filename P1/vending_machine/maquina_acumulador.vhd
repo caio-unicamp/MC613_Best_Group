@@ -5,10 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 entity maquina_acumulador is
     Port (
         clk             : in  STD_LOGIC;
-        clr_acumula           : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
+        clr_acumula     : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
         
-        -- Sinais de Controle (vindos da Máquina de Estados)
-        enable_acumula      : in  STD_LOGIC; -- Disparado quando pulso_out = '1' (gerou um clock forçado) e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
+        -- Sinais de Controle (vindos do top level)
+        enable_acumula  : in  STD_LOGIC; -- Disparado quando pulso_out = '1' e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
         
         -- Sinais de Dados
         valor_produto   : in  STD_LOGIC_VECTOR(10 downto 0); -- Vem do módulo produto_valor
