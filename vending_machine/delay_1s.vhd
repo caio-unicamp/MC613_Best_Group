@@ -5,8 +5,8 @@ use IEEE.NUMERIC_STD.ALL;
 entity delay_1s is
     Port (
         clk   : in  STD_LOGIC;
-        reset : in  STD_LOGIC;
-        done  : out STD_LOGIC
+        reset_timer : in  STD_LOGIC;
+        done_timer  : out STD_LOGIC
     );
 end delay_1s;
 
