@@ -11,7 +11,7 @@ entity maquina_estados is
         saldo_suficiente : in  STD_LOGIC_VECTOR(10 downto 0);
         troco            : in  STD_LOGIC_VECTOR(10 downto 0);
         estado_atual     : out STD_LOGIC_VECTOR(2 downto 0);
-        clr_acumula      : out STD_LOGIC;
+        clr_acumula      : out STD_LOGIC
     );
 end maquina_estados;
 
@@ -46,7 +46,7 @@ begin
 
             when inserir_dinheiro =>
                 if cancelar = '1' then
-                    if valor_acumulado = '0' then
+                    if unsigned(valor_acumulado) = '0' then
                         estado_proximo <= escolher_produto;
                     else
                         estado_proximo <= devolver_normal;
@@ -58,13 +58,13 @@ begin
                 end if;
 
             when dispensar =>
-                if troco = '0' then
+                if unsigned(troco) = '0' then
                     estado_proximo <= escolher_produto;
                 else
                     estado_proximo <= devolver_troco;
                 end if;
 
-            when devolver =>
+            when devolver =>    -- Precisa dividir em devolver normal e devolver troco
                 estado_proximo <= escolher_produto;
 
         end case;
