@@ -6,12 +6,11 @@ entity maquina_acumulador is
     Port (
         clk             : in  STD_LOGIC;
         clr_acumula     : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
-        
-        estado_atual    : in STD_LOGIC_VECTOR(2 downto 0);
-        
+        -- Recebido pela maquina de estados
+        estado_atual    : in STD_LOGIC_VECTOR(2 downto 0);  
         -- Sinais de Controle (vindos do top level)
         enable_acumula  : in  STD_LOGIC; -- Disparado quando pulso_out = '1' e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
-        
+
         -- Sinais de Dados
         valor_produto   : in  STD_LOGIC_VECTOR(10 downto 0); -- Vem do módulo produto_valor
         valor_moeda     : in  STD_LOGIC_VECTOR(10 downto 0); -- Vem do decode_moedas
@@ -42,7 +41,7 @@ begin
                 acumulador <= acumulador + unsigned(valor_moeda);
             end if;
 
-            if estado_atual = "000" then
+            if estado_atual = "000" then    -- Trava o valor após a seleção de produtos
                 preco_prod <= unsigned(valor_produto);
             end if;
         end if;

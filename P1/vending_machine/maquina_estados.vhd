@@ -86,6 +86,7 @@ begin
                     clr_acumula <= '1'; -- Zera o acumulador
                     estado_proximo <= escolher_produto; -- Finalmente segue para o estado inicial após devolver todo o troco
                 end if;
+                
             when devolver_normal =>    
                 reset_timer <= '0'; -- Reseta o cronômetro de 1s
 
