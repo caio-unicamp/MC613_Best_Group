@@ -1,3 +1,19 @@
+Simulação:
+  - todos os produtos e se o valor correto é retornado
+  - colocar dinheiro sem pressionar avançar/antes da seleção do produto
+  - troca de produtos antes de apertar pra avançar
+  - testar o fluxo alternativo esperado de cancelamento
+
+  - notas ao mesmo tempo
+  - avançar sem nota alguma
+  - continuar colocando dinheiro depois de cancelar
+  - continuar colocando depois de liberar o produto
+
+  - colocar dinheiro a mais para conferir o troco correto
+  - colocar mais quantidade de dinheiro do que o suportado
+  - colocar o dinheiro exato e conferir o fluxo de não-troco
+  - testar o cancelamento depois das etapas de liberação
+
 Placa:
 - Os LED's estão acendendo nas situações corretas (troco, devolução e dispensa de produto)
   - Caso em que troco = 0 (LEDR0)
