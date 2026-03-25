@@ -1,4 +1,4 @@
-Simulação:
+# Simulação:
 - Durante a seleção de produtos
   - Testar todos os produtos e se o valor correto deles é retornado
   - Colocar dinheiro sem pressionar avançar/antes da seleção do produto
@@ -17,7 +17,9 @@ Simulação:
   - Colocar o dinheiro exato e conferir o fluxo de não-troco
   - Testar o cancelamento depois das etapas de liberação
 
-Placa:
+---
+
+# Placa:
 - Os LED's estão acendendo nas situações corretas (troco, devolução e dispensa de produto)
   - Caso em que troco = 0 (LEDR0)
   - Caso em que troco > 0 (LEDR0 e LEDR1)
