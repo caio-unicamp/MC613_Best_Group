@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
+use IEEE.NUMERIC_STD.ALL;
 
 entity maquina_estados is
     Port (
@@ -10,6 +10,7 @@ entity maquina_estados is
         cancelar         : in  STD_LOGIC;
         -- Entradas vindas da máquina acumuladora
         valor_acumulado  : in STD_LOGIC_VECTOR(10 downto 0);
+        troco            : in STD_LOGIC_VECTOR(10 downto 0);
         venda_concluida  : in STD_LOGIC;
         -- Sinais do Timer
         done_timer       : in STD_LOGIC;    -- Recebido pelo contador de 1s (1 = acabou)
@@ -38,7 +39,7 @@ begin
     end process;
 
     -- Lógica de transição de estados e saídas
-    process(estado_atual, avancar, cancelar, troco, done_timer)
+    process(estado_atual, avancar, cancelar, troco, done_timer, valor_acumulado, venda_concluida)
     begin
         -- Valores padrão iniciais
         estado_proximo <= estado_atual; -- Por padrão, fica no mesmo estado
@@ -56,7 +57,7 @@ begin
 
             when inserir_dinheiro =>    
                 if cancelar = '1' then -- Caso cancele, confere se o valor acumulado é 0
-                    if valor_acumulado = (others => '0') then   -- Se for, volta ao estado de escolher produto
+                    if unsigned(valor_acumulado) = 0 then   -- Se for, volta ao estado de escolher produto
                         estado_proximo <= escolher_produto;
                     else    -- Caso contrário, vai para o estado de ressarcir o dinheiro inserido
                         estado_proximo <= devolver_normal;
@@ -68,9 +69,9 @@ begin
                 end if;
 
             when dispensar =>   
-                reset_timer <= '0'  -- Reseta o cronômetro de 1s
-                if done_timer = '0' then    -- Depois que passar 1s
-                    if troco = (others => '0') then
+                reset_timer <= '0';  -- Reseta o cronômetro de 1s
+                if done_timer = '1' then    -- Depois que passar 1s
+                    if unsigned(troco) = 0 then
                         clr_acumula <= '1'; -- Zera o acumulador
                         estado_proximo <= escolher_produto; -- Finalmente volta para o estado inicial
                     else
