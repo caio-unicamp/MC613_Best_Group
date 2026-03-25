@@ -2,7 +2,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-
 entity maquina_estados is
     Port (
         clk              : in  STD_LOGIC;
@@ -11,7 +10,7 @@ entity maquina_estados is
         cancelar         : in  STD_LOGIC;
         -- Entradas vindas da máquina acumuladora
         valor_acumulado  : in STD_LOGIC_VECTOR(10 downto 0);
-		  troco            : in STD_LOGIC_VECTOR(10 downto 0);
+        troco            : in STD_LOGIC_VECTOR(10 downto 0);
         venda_concluida  : in STD_LOGIC;
         -- Sinais do Timer
         done_timer       : in STD_LOGIC;    -- Recebido pelo contador de 1s (1 = acabou)

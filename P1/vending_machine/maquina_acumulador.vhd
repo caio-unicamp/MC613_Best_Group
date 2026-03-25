@@ -9,6 +9,8 @@ entity maquina_acumulador is
 		  
 		  estado_atual    : in  STD_LOGIC_VECTOR(2 downto 0);
         
+        estado_atual    : in STD_LOGIC_VECTOR(2 downto 0);
+        
         -- Sinais de Controle (vindos do top level)
         enable_acumula  : in  STD_LOGIC; -- Disparado quando pulso_out = '1' e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
         
@@ -48,17 +50,21 @@ begin
             elsif enable_acumula = '1' and estado_atual = "001" then
                 acumulador <= acumulador + unsigned(valor_moeda);
             end if;
+
+            if estado_atual = "000" then
+                preco_prod <= unsigned(valor_produto);
+            end if;
         end if;
+
     end process;
 
     -- Lógica Combinacional para Saldo e Troco
-    process(acumulador, preco_prod)
+    process(acumulador, preco_prod, estado_atual)
     begin
         -- Valores padrão
         venda_concluida <= '0';
         saldo_restante  <= std_logic_vector(preco_prod - acumulador);
         valor_troco     <= (others => '0');
-
         -- Verifica se o valor inserido já cobriu o preço
         if acumulador >= preco_prod then
             venda_concluida <= '1';
