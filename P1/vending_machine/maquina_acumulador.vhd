@@ -35,6 +35,13 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
+            -- Lógica para travar o preço
+            if estado_atual = "000" then
+                -- Enquanto estiver escolhendo, o preço segue os switches
+                preco_prod <= unsigned(valor_produto);
+            end if;
+
+            -- Lógica do acumulador original
             if clr_acumula = '1' then
                 acumulador <= (others => '0');
             elsif enable_acumula = '1' and estado_atual = "001" then
