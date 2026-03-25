@@ -87,6 +87,7 @@ begin
         port map(
             clk => CLOCK_50,
             clr_acumula => s_clr_acumula,
+            estado_atual => s_estado,
             enable_acumula => s_moeda_valida and s_avancar, -- Exemplo de trigger
             valor_produto => s_valor_produto,
             valor_moeda => s_valor_moeda,
@@ -114,10 +115,12 @@ begin
         );
 
     -- 9. Mostrar o código do produto no HEX5
-    display_estado: entity work.bin2hex
+    display_prod: entity work.exibir_produto
         port map(
+            estado => s_estado,
+            clk => CLOCK_50
             BIN => SW(3 downto 0),
-            HEX => HEX5
+            HEX_5 => HEX5
         );
 
     -- 10. Feedback visual nos LEDs
