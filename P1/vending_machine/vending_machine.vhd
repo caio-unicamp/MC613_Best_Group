@@ -60,7 +60,6 @@ begin
         );
 
     -- 4. Valor do Produto (Baseado nos Switches 3 a 0)
-    -- Nota: Você precisará do componente 'produto_valor' ou lógica similar
     prod_val: entity work.produto_valor
         port map(
             codigo_produto => SW(3 downto 0),
@@ -74,7 +73,7 @@ begin
             avancar => s_avancar,
             cancelar => s_cancelar,
             valor_acumulado => s_valor_acumulado,
-				troco => s_valor_troco,
+			troco => s_valor_troco,
             venda_concluida => s_venda_concluida,
             done_timer => s_done_timer,
             reset_timer => s_reset_timer,
@@ -117,7 +116,7 @@ begin
     -- 9. Mostrar o código do produto no HEX5
     display_prod: entity work.exibir_produto
         port map(
-            estado => s_estado,
+            estado => s_estado, 
             clk => CLOCK_50,
             BIN => SW(3 downto 0),
             HEX_5 => HEX5
