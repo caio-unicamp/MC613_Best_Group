@@ -118,13 +118,13 @@ begin
     display_prod: entity work.exibir_produto
         port map(
             estado => s_estado,
-            clk => CLOCK_50
+            clk => CLOCK_50,
             BIN => SW(3 downto 0),
             HEX_5 => HEX5
         );
 
     -- 10. Feedback visual nos LEDs
-    LEDR(0) <= '1' when (s_estado = "010" or s_estado = "100") else '0'; -- 'dispensar' ou devolver troco
-    LEDR(1) <= '1' when (s_estado = "011" or s_estado = "100") else '0'; -- 'devolver_normal' ou 'devolver_troco'
+    LEDR(0) <= '1' when s_estado = "010" else '0'; -- 'dispensar'
+    LEDR(1) <= '1' when (s_estado = "011" or s_estado = "100") else '0'; -- 'devolver_normal' (cancelamento) ou 'devolver_troco'
 
 end Behavioral;
