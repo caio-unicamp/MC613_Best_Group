@@ -6,6 +6,8 @@ entity maquina_acumulador is
     Port (
         clk             : in  STD_LOGIC;
         clr_acumula     : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
+		  
+		  estado_atual    : in  STD_LOGIC_VECTOR(2 downto 0);
         
         -- Sinais de Controle (vindos do top level)
         enable_acumula  : in  STD_LOGIC; -- Disparado quando pulso_out = '1' e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
@@ -28,16 +30,22 @@ architecture Behavioral of maquina_acumulador is
     signal acumulador : unsigned(10 downto 0) := (others => '0');
     signal preco_prod : unsigned(10 downto 0);
 begin
-    preco_prod <= unsigned(valor_produto);
     valor_acumulado <= std_logic_vector(acumulador);
 
     -- Registrador que acumula o dinheiro inserido
     process(clk)
     begin
         if rising_edge(clk) then
+            -- Lógica para travar o preço
+            if estado_atual = "000" then
+                -- Enquanto estiver escolhendo, o preço segue os switches
+                preco_prod <= unsigned(valor_produto);
+            end if;
+
+            -- Lógica do acumulador original
             if clr_acumula = '1' then
                 acumulador <= (others => '0');
-            elsif enable_acumula = '1' then
+            elsif enable_acumula = '1' and estado_atual = "001" then
                 acumulador <= acumulador + unsigned(valor_moeda);
             end if;
         end if;
