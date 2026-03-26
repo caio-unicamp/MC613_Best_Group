@@ -62,7 +62,7 @@ begin
                     else    -- Caso contrário, vai para o estado de ressarcir o dinheiro inserido
                         estado_proximo <= devolver_normal;
                     end if;
-                elsif venda_concluida = '1' then  -- Quando a venda foi concluída, indica que pode limpar o acumulador e passa para o estado de dispensar
+                elsif venda_concluida = '1' and avancar = '1' then  -- Quando a venda foi concluída e o botão de avançar foi pressionado, indica que pode limpar o acumulador e passa para o estado de dispensar
                     estado_proximo <= dispensar;
                 else
                     estado_proximo <= inserir_dinheiro;
@@ -86,7 +86,6 @@ begin
                     clr_acumula <= '1'; -- Zera o acumulador
                     estado_proximo <= escolher_produto; -- Finalmente segue para o estado inicial após devolver todo o troco
                 end if;
-
             when devolver_normal =>    
                 reset_timer <= '0'; -- Reseta o cronômetro de 1s
 

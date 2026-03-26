@@ -4,7 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity detector_borda is
     Port (
         clk       : in  STD_LOGIC;
-        botao_in  : in  STD_LOGIC;  -- Botão pressionado
+        botao_in  : in  STD_LOGIC;
         pulso_out : out STD_LOGIC
     );
 end detector_borda;

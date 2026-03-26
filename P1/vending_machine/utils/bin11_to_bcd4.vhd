@@ -15,7 +15,6 @@ begin
     variable x   : unsigned(10 downto 0);
     variable acc : unsigned(15 downto 0);
   begin
-  -- Algorítmo Double Dabble
     x   := unsigned(bin);
     acc := (others => '0');
 

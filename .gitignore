@@ -2,3 +2,6 @@ output_files/
 db/
 incremental_db/
 *.bak
+
+# ignoring MacOS native files
+.DS_Store

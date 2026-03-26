@@ -5,9 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity delay_1s is
     Port (
         clk   : in  STD_LOGIC;
-        -- Recebe um sinal da máquina de estados quando for para reiniciar o contador em uma nova contagem
-        reset_timer : in  STD_LOGIC;    
-        -- Envia quando encerrou para a máquina de estados
+        reset_timer : in  STD_LOGIC;
         done_timer  : out STD_LOGIC
     );
 end delay_1s;
