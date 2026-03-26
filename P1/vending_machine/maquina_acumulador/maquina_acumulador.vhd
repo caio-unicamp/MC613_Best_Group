@@ -6,9 +6,8 @@ entity maquina_acumulador is
     Port (
         clk             : in  STD_LOGIC;
         clr_acumula     : in  STD_LOGIC; -- Para zerar tudo após um cancelamento ou conclusão de venda
-        
-        estado_atual    : in STD_LOGIC_VECTOR(2 downto 0);
-        
+        -- Recebido pela maquina de estados
+        estado_atual    : in STD_LOGIC_VECTOR(2 downto 0); -- Usado para travar os switches em estados impróprios
         -- Sinais de Controle (vindos do top level)
         enable_acumula  : in  STD_LOGIC; -- Disparado quando pulso_out = '1' e moeda_valida = '1' (se pode prosseguir com a acumulação ou seja apenas uma moeda inserida)
         
@@ -17,8 +16,8 @@ entity maquina_acumulador is
         valor_moeda     : in  STD_LOGIC_VECTOR(10 downto 0); -- Vem do decode_moedas
         
         -- Saídas para os Displays (A passar pelo Double Dabble)
-        saldo_restante  : out STD_LOGIC_VECTOR(10 downto 0);
-        valor_troco     : out STD_LOGIC_VECTOR(10 downto 0);
+        saldo_restante  : out STD_LOGIC_VECTOR(10 downto 0); -- Vai para a máquina de estados para indicar o estado de cancelamento normal ou com devolução
+        valor_troco     : out STD_LOGIC_VECTOR(10 downto 0); -- Vai para a máquina de estados avaliar se o próximo estado será de devolver troco ou apenas liberar o produto
         valor_acumulado : out STD_LOGIC_VECTOR(10 downto 0); -- Pra exibir durante o cancelamento
         
         -- Status para a máquina de estados
