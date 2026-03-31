@@ -7,7 +7,6 @@ end maquina_acumulador_tb;
 
 architecture behavior of maquina_acumulador_tb is 
 
-    -- Declaração do Componente (Device Under Test - DUT)
     component maquina_acumulador
     Port (
         clk             : in  STD_LOGIC;
@@ -42,7 +41,7 @@ architecture behavior of maquina_acumulador_tb is
 
 begin
 
-    -- Instanciação do módulo a ser testado
+    -- Instanciação da máquina acumuladora
     uut: maquina_acumulador PORT MAP (
         clk => clk,
         clr_acumula => clr_acumula,
@@ -65,32 +64,36 @@ begin
         wait for clk_period/2;
     end process;
 
-    -- Processo de estímulos (Simulando o usuário)
+    -- Processo de estímulos
     stim_proc: process
     begin		
-        -- 1. Inicialização e Reset Inicial
+        report "===================================================";
+        report "INICIANDO SIMULACAO DA MAQUINA DE VENDAS";
+        report "===================================================";
+        -- Inicialização e Reset Inicial
         clr_acumula <= '1';
         wait for clk_period*2;
         clr_acumula <= '0';
         wait for clk_period;
 
         -- =========================================================
-        -- TESTE 1: Compra exata sem troco (Produto = R$ 1,25)
+        report "--- TESTE 1: Compra Exata (Produto = R$ 1,25) ---";
         -- =========================================================
         
-        -- Estado 000: Escolhendo o produto (R$ 1,25 = 125 centavos)
+        -- Estado 000: Escolha de produto 
         estado_atual <= "000";
         valor_produto <= std_logic_vector(to_unsigned(125, 11));
         wait for clk_period*2; -- Dá tempo para o registrador salvar o preço
+        report "Produto Selecionado! Preco: " & integer'image(to_integer(unsigned(valor_produto))) & " centavos.";
         
-        -- Estado 001: Mudou para inserir moedas (o preço agora está travado internamente)
+        -- Estado 001: Inserir dinheiro
         estado_atual <= "001";
-        -- Tentamos mudar o produto nos switches para testar se o preço travou mesmo. 
+        -- Tenta mudar o produto nos switches para testar se o preço travou mesmo. 
         -- O módulo deve ignorar isso.
         valor_produto <= std_logic_vector(to_unsigned(500, 11)); 
         wait for clk_period;
 
-        -- Inserindo moeda de R$ 1,00 (100 centavos)
+        -- Inserindo moeda de R$ 1,00
         valor_moeda <= std_logic_vector(to_unsigned(100, 11));
         enable_acumula <= '1'; -- Pulso do botão Avançar
         wait for clk_period;   -- O pulso dura 1 clock
@@ -115,10 +118,10 @@ begin
         wait for clk_period;
 
         -- =========================================================
-        -- TESTE 2: Compra com troco (Produto = R$ 3,00)
+        -- TESTE 2: Compra com troco (Produto 1 = R$ 3,00)
         -- =========================================================
         
-        -- Estado 000: Produto (R$ 3,00 = 300 centavos)
+        -- Estado 000: Escolher produto
         estado_atual <= "000";
         valor_produto <= std_logic_vector(to_unsigned(300, 11));
         wait for clk_period*2;
@@ -127,5 +130,42 @@ begin
         estado_atual <= "001";
         wait for clk_period;
 
-        -- Inserindo R$ 2,00 (200 centavos)
-        valor_moeda <= std_logic_vector(to_unsigned(2
+        -- Inserindo R$ 2,00
+        valor_moeda <= std_logic_vector(to_unsigned(2))
+        enable_acumula <= '1';
+        wait for clk_period;
+        enable_acumula <= '0';
+        wait for clk_period*2;
+
+        -- Inserindo mais R$ 2,00 (Passando do valor, total inserido = 400)
+        valor_moeda <= std_logic_vector(to_unsigned(200, 11));
+        enable_acumula <= '1';
+        wait for clk_period;
+        enable_acumula <= '0';
+
+        wait for clk_period*3;
+        -- Acumulado deve ser 400. venda_concluida = 1. troco = 100. saldo = 0.
+
+        -- =========================================================
+        -- TESTE 3: Ignorar moeda se estado não for 001
+        -- =========================================================
+        
+        -- Mudando o estado para "010" (Dispensando, por exemplo)
+        estado_atual <= "010";
+        wait for clk_period;
+        
+        -- Mandando pulso de moeda de 50 centavos
+        valor_moeda <= std_logic_vector(to_unsigned(50, 11));
+        enable_acumula <= '1';
+        wait for clk_period;
+        enable_acumula <= '0';
+        
+        wait for clk_period*3;
+        -- O acumulado NÃO deve ter mudado (deve continuar em 400), 
+        -- porque o estado não era "001".
+
+        -- Finaliza a simulação
+        wait;
+    end process;
+
+end behavior;
