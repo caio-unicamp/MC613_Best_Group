@@ -104,9 +104,9 @@ begin
         -- Inserir R$ 0,50 (SW3)
 		  press_key(key, 0); 
         sw(9 downto 4) <= "001000"; 
-        print_log("Acao: Selecionando R$ 0,50 no SW(7)");
+        print_log("Selecionando R$ 0,50 no SW(7)");
         press_key(key, 0); 
-        print_log("Acao: KEY(0) pressionada para inserir saldo.");
+        print_log("KEY(0) pressionada para inserir saldo.");
         wait for 100 ns;
         sw(9 downto 4) <= "000000";
         print_status;
@@ -132,7 +132,7 @@ begin
         print_log("Produto 0 selecionado.");
 
         sw(9 downto 4) <= "100000"; -- R$ 2,00
-        print_log("Acao: Inserindo nota de R$ 2,00 (SW9)");
+        print_log("Inserindo nota de R$ 2,00 (SW9)");
         press_key(key, 0); 
         wait for 100 ns;
  
@@ -172,7 +172,7 @@ begin
             print_status;
         end loop;
         
-        print_log("Acao: Confirmando finalizacao da venda...");
+        print_log("Confirmando finalizacao da venda...");
         press_key(key, 0); 
           
         loop
@@ -193,11 +193,11 @@ begin
 		  print_status;
         
         sw(9 downto 4) <= "110000"; -- Tenta R$ 2,00 + R$ 1,00 simultaneamente
-        print_log("Acao: Setando SW(9) e SW(8) em '1' (Invalido)");
+        print_log("Setando SW(9) e SW(8) em '1' (Invalido)");
         press_key(key, 0);
         
         wait for 100 ns;
-        print_log("O saldo no HEX não deve ter alterado.");
+        print_log("O saldo no HEX nao deve ter alterado.");
         print_status;
         sw(9 downto 4) <= "000000";
         wait;
