@@ -193,11 +193,11 @@ begin
 		  print_status;
         
         sw(9 downto 4) <= "110000"; -- Tenta R$ 2,00 + R$ 1,00 simultaneamente
-        print_log("Acao: Setando SW(9) e SW(8) em '1' (Invalido)");
+        print_log("Setando SW(9) e SW(8) em '1' (Invalido)");
         press_key(key, 0);
         
         wait for 100 ns;
-        print_log("O saldo no HEX não deve ter alterado.");
+        print_log("O saldo no HEX nao deve ter alterado.");
         print_status;
         sw(9 downto 4) <= "000000";
         wait;
