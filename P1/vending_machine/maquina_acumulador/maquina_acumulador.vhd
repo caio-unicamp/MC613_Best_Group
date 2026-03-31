@@ -37,7 +37,7 @@ begin
         if rising_edge(clk) then
             if clr_acumula = '1' then
                 acumulador <= (others => '0');
-            elsif enable_acumula = '1' then
+            elsif enable_acumula = '1' and estado_atual = "001" then
                 acumulador <= acumulador + unsigned(valor_moeda);
             end if;
 

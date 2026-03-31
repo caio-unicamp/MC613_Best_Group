@@ -1,104 +1,206 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-use STD.TEXTIO.ALL;
-use IEEE.STD_LOGIC_TEXTIO.ALL;
+use std.textio.all; -- Necessário para as funções de print (write/writeline)
 
 entity vending_machine_tb is
 end vending_machine_tb;
 
-architecture Behavioral of vending_machine_tb is
-    -- Componente da Vending Machine
-    component vending_machine
-        Port(
-            CLOCK_50 : in STD_LOGIC;
-            KEY      : in STD_LOGIC_VECTOR(3 downto 0);
-            SW       : in STD_LOGIC_VECTOR(9 downto 0);
-            HEX0, HEX1, HEX2, HEX3, HEX5 : out STD_LOGIC_VECTOR(6 downto 0);
-            LEDR     : out STD_LOGIC_VECTOR(9 downto 0)
-        );
-    end component;
+architecture sim of vending_machine_tb is
 
-    -- Sinais de interface
-    signal clk      : STD_LOGIC := '0';
-    signal key_in   : STD_LOGIC_VECTOR(3 downto 0) := (others => '1'); -- KEYs são active-low
-    signal sw_in    : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
-    signal hex0, hex1, hex2, hex3, hex5 : STD_LOGIC_VECTOR(6 downto 0);
-    signal ledr_out : STD_LOGIC_VECTOR(9 downto 0);
+    -- Sinais para conectar ao Top-Level
+    signal clk_50   : std_logic := '0';
+    signal key      : std_logic_vector(3 downto 0) := (others => '1'); 
+    signal sw       : std_logic_vector(9 downto 0) := (others => '0');
+    signal hex0, hex1, hex2, hex3, hex5 : std_logic_vector(6 downto 0);
+    signal ledr     : std_logic_vector(9 downto 0);
 
-    -- Constantes de tempo
-    constant clk_period : time := 20 ns; -- 50MHz
+    constant CLK_PERIOD : time := 20 ns;
+
+    -- Função auxiliar para converter std_logic_vector em string (para os prints)
+    function to_string(sv: std_logic_vector) return string is
+        variable res_str: string(1 to sv'length);
+    begin
+        for i in sv'range loop
+            if sv(i) = '1' then res_str(sv'length - i) := '1';
+            else res_str(sv'length - i) := '0';
+            end if;
+        end loop;
+        return res_str;
+    end function;
+
+    -- Procedimento para print customizado
+    procedure print_log(msg : string) is
+        variable l : line;
+    begin
+        write(l, msg);
+        writeline(output, l);
+    end procedure;
+
+    -- Print do status atual do hardware (Comprovação das saídas)
+    procedure print_status is
+        variable l : line;
+    begin
+        write(l, string'("[STATUS] SW: ") & to_string(sw));
+        write(l, string'(" | LEDR: ") & to_string(ledr));
+		  write(l, string'(" | HEX5 (Codigo): ") & to_string(hex5));
+		  writeline(output, l);
+        write(l, string'("HEX0: ") & to_string(hex0));
+		  writeline(output, l);
+		  write(l, string'("HEX1: ") & to_string(hex1));
+		  writeline(output, l);
+		  write(l, string'("HEX2: ") & to_string(hex2));
+		  writeline(output, l);
+		  write(l, string'("HEX3: ") & to_string(hex3));
+		  writeline(output, l);
+		 
+        
+    end procedure;
+
+    procedure press_key(signal k_sig : out std_logic_vector; index : integer) is
+    begin
+        k_sig(index) <= '0';
+        wait for 100 ns;
+        k_sig(index) <= '1';
+        wait for 100 ns;
+    end procedure;
 
 begin
-    -- Instanciação da Vending Machine
-    uut: vending_machine
+
+    uut: entity work.vending_machine
         port map (
-            CLOCK_50 => clk,
-            KEY      => key_in,
-            SW       => sw_in,
-            HEX0 => hex0, HEX1 => hex1, HEX2 => hex2, HEX3 => hex3, HEX5 => hex5,
-            LEDR     => ledr_out
+            CLOCK_50 => clk_50,
+            KEY      => key,
+            SW       => sw,
+            HEX0     => hex0, HEX1 => hex1, HEX2 => hex2, HEX3 => hex3,
+            HEX5     => hex5,
+            LEDR     => ledr
         );
 
-    -- Processo de Clock
-    clk_gen: process
+    clk_process : process
     begin
-        clk <= '0'; wait for clk_period/2;
-        clk <= '1'; wait for clk_period/2;
+        clk_50 <= '0'; wait for CLK_PERIOD/2;
+        clk_50 <= '1'; wait for CLK_PERIOD/2;
     end process;
 
-    -- Processo de Teste
     stim_proc: process
-        variable L : line;
-        
-        -- Procedimento auxiliar para simular o apertar de um botão
-        procedure apertar_botao(index : integer) is
-        begin
-            key_in(index) <= '0'; -- Aperta (Active-low)
-            wait for clk_period * 3;
-            key_in(index) <= '1'; -- Solta
-            wait for clk_period * 5;
-        end procedure;
-
     begin
-        write(L, string'("--- Iniciando Simulacao da Vending Machine ---"));
-        writeline(output, L);
-
-        -- 1. Selecionar Produto (SW(3:0) = "0010")
-        sw_in(3 downto 0) <= "0010";
+        print_log("--- INICIANDO SIMULACAO DA MAQUINA DE VENDAS ---");
         wait for 100 ns;
-        write(L, string'("Produto selecionado: 0010. Confirmando..."));
-        writeline(output, L);
-        apertar_botao(0); -- Avançar/Confirmar
-
-        -- 2. Inserir Moeda (Ex: 1 Real = SW(8) = '1')
-        -- Ajuste os bits de SW conforme seu decode_moedas
-        sw_in(9 downto 4) <= "010000"; -- "010000" conforme seu código de moedas
-        wait for 40 ns;
-        write(L, string'("Moeda de 1 Real detectada. Processando..."));
-        writeline(output, L);
-        apertar_botao(0); -- Pulso para validar a moeda e avançar no acumulador
-
-        -- 3. Esperar e verificar saldo
-        wait for 100 ns;
-        write(L, string'("Estado Atual: "));
-        write(L, ledr_out(2 downto 0)); -- Se você mapeou o estado nos LEDs
-        writeline(output, L);
-
-        -- 4. Simular Finalização ou Cancelamento
-        -- Se o valor inserido for suficiente, apertar avançar deve ir para dispensar
-        write(L, string'("Finalizando venda..."));
-        writeline(output, L);
-        apertar_botao(0);
-
-        -- 5. Aguardar o delay_1s (na simulação você pode ver o sinal done_timer subir)
-        -- Nota: Se o timer real for 50M de ciclos, a simulação vai demorar.
-        wait for 500 ns; 
-
-        write(L, string'("--- Teste Concluido ---"));
-        writeline(output, L);
         
+        ------------------------------------------------------------------------
+        print_log("TESTE 1: Verificando selecao de produtos via SW(3:0)");
+        ------------------------------------------------------------------------
+        for i in 0 to 3 loop -- Testando os primeiros 4 para brevidade no console
+            sw(3 downto 0) <= std_logic_vector(to_unsigned(i, 4));
+            wait for 100 ns;
+            print_log("Produto " & integer'image(i) & " selecionado.");
+            print_status;
+        end loop;
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 2: Insercao de moedas e Cancelamento");
+        ------------------------------------------------------------------------
+        -- Inserir R$ 0,50 (SW3)
+		  press_key(key, 0); 
+        sw(9 downto 4) <= "001000"; 
+        print_log("Acao: Selecionando R$ 0,50 no SW(7)");
+        press_key(key, 0); 
+        print_log("Acao: KEY(0) pressionada para inserir saldo.");
+        wait for 100 ns;
+        sw(9 downto 4) <= "000000";
+        print_status;
+
+        -- Cancelar
+        print_log("Pressionando KEY(1) para CANCELAR...");
+        press_key(key, 1);
+        
+        loop
+            wait until rising_edge(clk_50);
+            if ledr(1) = '1' then
+                print_status;
+                exit;
+            end if;
+        end loop;
+        wait for 1.2 us; 
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 3: Venda com Troco (Produto 0 = 125, Inserindo 200)");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0000"; 
+        press_key(key, 0); -- Seleciona
+        print_log("Produto 0 selecionado.");
+
+        sw(9 downto 4) <= "100000"; -- R$ 2,00
+        print_log("Acao: Inserindo nota de R$ 2,00 (SW9)");
+        press_key(key, 0); 
+        wait for 100 ns;
+ 
+        -- Aguarda Produto
+        loop
+            wait until rising_edge(clk_50);
+            if ledr(0) = '1' then
+                print_status;
+                exit;
+            end if;
+        end loop;          
+          
+        -- Aguarda Troco
+        loop
+            wait until rising_edge(clk_50);
+            if ledr(1) = '1' then
+                print_status;
+                exit;
+            end if;
+        end loop;          
+        
+        wait for 2.5 us; 
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 4: Valor Exato (Produto 1 = 300, Inserindo 3x 100)");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0001";
+        press_key(key, 0);
+        print_log("Produto 1 selecionado (Custo 3,00)");
+        
+        for i in 1 to 3 loop
+            sw(9 downto 4) <= "010000"; -- R$ 1,00
+            print_log("Inserindo R$ 1,00 pela " & integer'image(i) & "a vez.");
+            press_key(key, 0);
+            sw(9 downto 4) <= "000000";
+            wait for 100 ns;
+            print_status;
+        end loop;
+        
+        print_log("Acao: Confirmando finalizacao da venda...");
+        press_key(key, 0); 
+          
+        loop
+            wait until rising_edge(clk_50);
+            if ledr(0) = '1' then
+                print_status;
+                exit;
+            end if;
+        end loop;          
+        
+		  wait for 2.5 us; 
+		  
+			------------------------------------------------------------------------
+        print_log("TESTE 5: Tentativa de inserir DUAS notas ao mesmo tempo");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0000"; -- Seleciona produto 0
+        press_key(key, 0);
+		  print_status;
+        
+        sw(9 downto 4) <= "110000"; -- Tenta R$ 2,00 + R$ 1,00 simultaneamente
+        print_log("Acao: Setando SW(9) e SW(8) em '1' (Invalido)");
+        press_key(key, 0);
+        
+        wait for 100 ns;
+        print_log("O saldo no HEX não deve ter alterado.");
+        print_status;
+        sw(9 downto 4) <= "000000";
         wait;
     end process;
 
-end Behavioral;
+end sim;
