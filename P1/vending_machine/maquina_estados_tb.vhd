@@ -83,27 +83,36 @@ begin
 
     -- Processo de Estímulo
     stim_proc: process
+		variable l : line;
     begin
         -- Estado Inicial: escolher_produto
         wait for clk_period;
-        print_status("1. Inicio: Esperando escolher_produto");
+        print_status("1. Esperando escolher_produto");
 
         -- Transição para inserir_dinheiro
         avancar <= '1';
-        wait for clk_period;
+        wait for clk_period/2;
+		  print_status("Sinal Avancar");
+		  wait for clk_period/2;
         avancar <= '0';
         wait for clk_period;
-        print_status("2. Avancou para inserir_dinheiro (estado_out 001)");
+        print_status("Avancou para inserir_dinheiro (estado_out 001)");
 
         -- Cenário A: Cancelar sem dinheiro inserido (Volta para escolher_produto)
+		  writeline(output, l);
+		  print_status("2. Cancelar sem saldo");
         cancelar <= '1';
         valor_acumulado <= std_logic_vector(to_unsigned(0, 11));
-        wait for clk_period;
+        wait for clk_period/2;
+		  print_status("Sinal cancelar");
+		  wait for clk_period/2;
         cancelar <= '0';
         wait for clk_period;
-        print_status("3. Cancelou sem saldo: Voltou para escolher_produto (estado_out 000)");
+        print_status("Voltou para escolher_produto (estado_out 000)");
 
         -- Voltando para inserir_dinheiro para novo teste
+		  writeline(output, l);
+		  print_status("3. Cancelar com saldo");
         avancar <= '1';
         wait for clk_period;
         avancar <= '0';
@@ -112,40 +121,78 @@ begin
         -- Cenário B: Cancelar com dinheiro (Vai para devolver_normal)
         valor_acumulado <= std_logic_vector(to_unsigned(500, 11)); -- Ex: 5 reais
         cancelar <= '1';
-        wait for clk_period;
+        wait for clk_period/2;
+		  print_status("Sinal cancelar");
+		  wait for clk_period/2;
         cancelar <= '0';
         wait for clk_period;
-        print_status("4. Cancelou com saldo: Indo para devolver_normal (estado_out 011)");
+        print_status("Indo para devolver_normal (estado_out 011)");
 
         -- Simula Timer acabando em devolver_normal
         done_timer <= '1';
-        wait for clk_period;
+        wait for clk_period/2;
+		  print_status("Dinheiro devolvido. (done_timer=1)");
+		  wait for clk_period/2;
         done_timer <= '0';
         wait for clk_period;
-        print_status("5. Dinheiro devolvido: Voltou para escolher_produto. CLR_ACUM deve ser 1");
+		  valor_acumulado <= std_logic_vector(to_unsigned(0, 11));
+		  print_status("Voltou para escolher_produto."); 
+        
 
         -- Cenário C: Venda com sucesso e troco
+		  writeline(output, l);
+		  print_status("4. Venda com troco");
         avancar <= '1'; wait for clk_period; avancar <= '0'; -- Vai para inserir
+		  valor_acumulado <= std_logic_vector(to_unsigned(500, 11)); -- Ex: 5 reais
+		  troco <= std_logic_vector(to_unsigned(150, 11)); -- Ex: 1,50 de troco
         venda_concluida <= '1';
-        troco <= std_logic_vector(to_unsigned(150, 11)); -- Ex: 1,50 de troco
-        wait for clk_period;
-        venda_concluida <= '0';
-        wait for clk_period;
-        print_status("6. Venda concluida: Indo para dispensar (estado_out 010)");
+        wait for clk_period/2;
+        print_status("Sinal venda concluida");
+		  wait for clk_period/2;
+		  venda_concluida <= '0';
+		  wait for clk_period;
+		  print_status("Indo para dispensar (estado_out 010)");
 
         -- Simula Timer acabando em dispensar
         done_timer <= '1';
-        wait for clk_period;
+        wait for clk_period/2;
+		  print_status("Produto dispensado (done_timer=1)");
+		  wait for clk_period/2;
         done_timer <= '0';
         wait for clk_period;
-        print_status("7. Produto dispensado: Indo para devolver_troco (estado_out 100)");
+        print_status("Indo para devolver_troco (estado_out 100)");
 
         -- Finaliza troco
         done_timer <= '1';
+        wait for clk_period/2;
+		  print_status("Troco devolvido. (done_timer=1)");
+		  wait for clk_period/2;
+        done_timer <= '0';
+		  troco <= std_logic_vector(to_unsigned(0, 11));
         wait for clk_period;
+        print_status("Fim do ciclo. Voltou para escolher_produto");
+		  
+		  -- Cenário D: Venda com sucesso sem troco
+		  writeline(output, l);
+		  valor_acumulado <= std_logic_vector(to_unsigned(500, 11)); -- Ex: 5 reais
+		  print_status("5. Venda sem troco");
+        avancar <= '1'; wait for clk_period; avancar <= '0'; -- Vai para inserir
+        venda_concluida <= '1';
+        wait for clk_period/2;
+        print_status("Sinal venda concluida");
+		  wait for clk_period/2;
+		  venda_concluida <= '0';
+		  wait for clk_period;
+		  print_status("Indo para dispensar (estado_out 010)");
+
+        -- Simula Timer acabando em dispensar
+        done_timer <= '1';
+        wait for clk_period/2;
+		  print_status("Produto dispensado (done_timer=1)");
+		  wait for clk_period/2;
         done_timer <= '0';
         wait for clk_period;
-        print_status("8. Troco devolvido: Fim do ciclo. Voltou para escolher_produto");
+        print_status("Indo para escolher_produto");
 
         report "Fim do Testbench" severity note;
         wait;
