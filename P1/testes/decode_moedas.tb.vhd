@@ -2,11 +2,11 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity tb_decode_moedas is
+entity decode_moedas_tb is
     -- Testbench não possui portas
-end tb_decode_moedas;
+end decode_moedas_tb;
 
-architecture sim of tb_decode_moedas is
+architecture sim of decode_moedas_tb is
 
     -- Sinais internos para conectar ao componente (UUT)
     signal s_sw_moedas    : STD_LOGIC_VECTOR(9 downto 4) := (others => '0');
