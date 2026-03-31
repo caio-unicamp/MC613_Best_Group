@@ -9,7 +9,7 @@ end maquina_estados_tb;
 
 architecture sim of maquina_estados_tb is
 
-    -- Sinais para conectar à DUT (Device Under Test)
+    -- Sinais para conectar na DUT (Device Under Test)
     signal clk             : STD_LOGIC := '0';
     signal avancar         : STD_LOGIC := '0';
     signal cancelar        : STD_LOGIC := '0';
@@ -21,37 +21,44 @@ architecture sim of maquina_estados_tb is
     signal estado_out      : STD_LOGIC_VECTOR(2 downto 0);
     signal clr_acumula     : STD_LOGIC;
 
-    -- Constante de clock (ex: 50MHz)
     constant clk_period : time := 20 ns;
 
-	 -- Procedimento para print customizado
-    procedure print_log(msg : string) is
-        variable l : line;
-    begin
-        write(l, msg);
-        writeline(output, l);
-    end procedure;
-	 
-    -- Procedimento para printar o estado atual e sinais
+    -- Procedimento para printar o estado atual dos sinais
     procedure print_status(msg : string) is
         variable l : line;
     begin
         write(l, msg);
-		  writeline(output, l);
-        write(l, string'(" | Estado_Out: "));
-        write(l, estado_out);
-        write(l, string'(" | Clr_Acum: "));
-        write(l, clr_acumula);
-        write(l, string'(" | Reset_Timer: "));
-        write(l, reset_timer);
         writeline(output, l);
-		  writeline(output, l);
+        
+        write(l, string'("Entradas -> AV:"));
+        write(l, avancar);
+        write(l, string'(" CANC:"));
+        write(l, cancelar);
+        write(l, string'(" ACUM:"));
+        write(l, to_integer(unsigned(valor_acumulado)));
+        write(l, string'(" TROCO:"));
+        write(l, to_integer(unsigned(troco)));
+        write(l, string'(" VENDA:"));
+        write(l, venda_concluida);
+        write(l, string'(" DONE_T:"));
+        write(l, done_timer);
+        writeline(output, l);
+
+        write(l, string'("Saidas   -> ESTADO:"));
+        write(l, estado_out);
+        write(l, string'(" RST_T:"));
+        write(l, reset_timer);
+        write(l, string'(" CLR_ACUM:"));
+        write(l, clr_acumula);
+        writeline(output, l);
+        write(l, string'("--------------------------------------------------"));
+        writeline(output, l);
     end procedure;
 
 begin
 
-    -- Instanciação da Unidade sob Teste (DUT)
-    dut: entity work.maquina_estados
+    -- Instância da Máquina de Estados
+    uut: entity work.maquina_estados
         port map (
             clk             => clk,
             avancar         => avancar,
@@ -77,69 +84,70 @@ begin
     -- Processo de Estímulo
     stim_proc: process
     begin
-        -- Inicialização
-        print_log("Iniciando Testbench da Maquina de Estados...");
-        wait for clk_period * 2;
+        -- Estado Inicial: escolher_produto
+        wait for clk_period;
+        print_status("1. Inicio: Esperando escolher_produto");
 
-        -- CENÁRIO 1: Fluxo de Venda com Sucesso e Troco
-        print_status("--- Inicio: Escolher Produto (000) ---");
-        
+        -- Transição para inserir_dinheiro
         avancar <= '1';
         wait for clk_period;
         avancar <= '0';
         wait for clk_period;
-        print_status("Avançou para Inserir Dinheiro (001)");
+        print_status("2. Avancou para inserir_dinheiro (estado_out 001)");
 
-        valor_acumulado <= std_logic_vector(to_unsigned(500, 11)); -- Simula 5 reais
+        -- Cenário A: Cancelar sem dinheiro inserido (Volta para escolher_produto)
+        cancelar <= '1';
+        valor_acumulado <= std_logic_vector(to_unsigned(0, 11));
+        wait for clk_period;
+        cancelar <= '0';
+        wait for clk_period;
+        print_status("3. Cancelou sem saldo: Voltou para escolher_produto (estado_out 000)");
+
+        -- Voltando para inserir_dinheiro para novo teste
+        avancar <= '1';
+        wait for clk_period;
+        avancar <= '0';
+        wait for clk_period;
+
+        -- Cenário B: Cancelar com dinheiro (Vai para devolver_normal)
+        valor_acumulado <= std_logic_vector(to_unsigned(500, 11)); -- Ex: 5 reais
+        cancelar <= '1';
+        wait for clk_period;
+        cancelar <= '0';
+        wait for clk_period;
+        print_status("4. Cancelou com saldo: Indo para devolver_normal (estado_out 011)");
+
+        -- Simula Timer acabando em devolver_normal
+        done_timer <= '1';
+        wait for clk_period;
+        done_timer <= '0';
+        wait for clk_period;
+        print_status("5. Dinheiro devolvido: Voltou para escolher_produto. CLR_ACUM deve ser 1");
+
+        -- Cenário C: Venda com sucesso e troco
+        avancar <= '1'; wait for clk_period; avancar <= '0'; -- Vai para inserir
         venda_concluida <= '1';
-        troco <= std_logic_vector(to_unsigned(100, 11)); -- Simula 1 real de troco
+        troco <= std_logic_vector(to_unsigned(150, 11)); -- Ex: 1,50 de troco
         wait for clk_period;
         venda_concluida <= '0';
-        print_status("Venda concluída, indo para Dispensar (010)");
+        wait for clk_period;
+        print_status("6. Venda concluida: Indo para dispensar (estado_out 010)");
 
-        wait for clk_period;
-        done_timer <= '1'; -- Simula que passou 1 segundo
-        wait for clk_period;
-        print_status("Timer OK, indo para Devolver Troco (100)");
-        done_timer <= '0';
-
-        wait for clk_period;
+        -- Simula Timer acabando em dispensar
         done_timer <= '1';
         wait for clk_period;
-        print_status("Troco devolvido, voltando ao Inicio (000)");
         done_timer <= '0';
-
-        -- CENÁRIO 2: Cancelamento com dinheiro inserido
-        wait for clk_period * 2;
-        avancar <= '1';
         wait for clk_period;
-        avancar <= '0';
-        
-        valor_acumulado <= std_logic_vector(to_unsigned(200, 11));
-        cancelar <= '1';
-        wait for clk_period;
-        cancelar <= '0';
-        print_status("Cancelado com saldo, indo para Devolver Normal (011)");
+        print_status("7. Produto dispensado: Indo para devolver_troco (estado_out 100)");
 
+        -- Finaliza troco
         done_timer <= '1';
         wait for clk_period;
-        print_status("Saldo devolvido, limpando acumulador e resetando");
         done_timer <= '0';
-
-        -- CENÁRIO 3: Cancelamento sem dinheiro (volta direto)
-        wait for clk_period * 2;
-        avancar <= '1';
         wait for clk_period;
-        avancar <= '0';
-        
-        valor_acumulado <= (others => '0');
-        cancelar <= '1';
-        wait for clk_period;
-        cancelar <= '0';
-        print_status("Cancelado sem saldo, volta direto para Inicial (000)");
+        print_status("8. Troco devolvido: Fim do ciclo. Voltou para escolher_produto");
 
-        wait for clk_period * 5;
-        report "Fim dos testes.";
+        report "Fim do Testbench" severity note;
         wait;
     end process;
 
