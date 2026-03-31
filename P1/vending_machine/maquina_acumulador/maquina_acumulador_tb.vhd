@@ -66,11 +66,10 @@ begin
 
     -- Processo de estímulos
     stim_proc: process
-    begin       
+    begin		
         report "===================================================";
         report "INICIANDO SIMULACAO DA MAQUINA DE VENDAS";
         report "===================================================";
-        
         -- Inicialização e Reset Inicial
         clr_acumula <= '1';
         wait for clk_period*2;
@@ -78,30 +77,33 @@ begin
         wait for clk_period;
 
         -- =========================================================
-        report "--- TESTE 1: Compra Exata (Produto = R$ 1,25) ---";
+        report "--- TESTE 1: Compra Exata (Produto 0 = R$ 1,25) ---";
         -- =========================================================
         
         -- Estado 000: Escolha de produto 
         estado_atual <= "000";
         valor_produto <= std_logic_vector(to_unsigned(125, 11));
         wait for clk_period*2; -- Dá tempo para o registrador salvar o preço
-        report "Produto Selecionado! Preco travado internamente em: 125 centavos.";
+        report "Produto Selecionado! Preco: " & integer'image(to_integer(unsigned(valor_produto))) & " centavos.";
         
         -- Estado 001: Inserir dinheiro
         estado_atual <= "001";
-        valor_produto <= std_logic_vector(to_unsigned(500, 11)); -- Tenta fraudar o preço mudando a chave
+        -- Tenta mudar o produto nos switches para testar se o preço travou mesmo. 
+        -- O módulo deve ignorar isso.
+        valor_produto <= std_logic_vector(to_unsigned(500, 11)); 
         wait for clk_period;
 
         -- Inserindo moeda de R$ 1,00
         valor_moeda <= std_logic_vector(to_unsigned(100, 11));
-        enable_acumula <= '1'; 
-        wait for clk_period;   
+        enable_acumula <= '1'; -- Pulso do botão Avançar
+        wait for clk_period;   -- O pulso dura 1 clock
         enable_acumula <= '0';
         
-        wait for clk_period*2; -- Aguarda o processamento
+        wait for clk_period*2; -- Aguarda o usuário pegar outra moeda
         report "[!] Inseriu moeda de 100 centavos.";
         report " -> Valor Acumulado atual: " & integer'image(to_integer(unsigned(valor_acumulado)));
         report " -> Saldo Restante a pagar: " & integer'image(to_integer(unsigned(saldo_restante)));
+        -- Saldo deve ser 25 centavos, acumulado 100.
         
         -- Inserindo moeda de R$ 0,25
         valor_moeda <= std_logic_vector(to_unsigned(25, 11));
@@ -110,9 +112,10 @@ begin
         enable_acumula <= '0';
 
         wait for clk_period*2;
+        -- Acumulado deve ser 125. venda_concluida = 1. troco = 0.
         report "[!] Inseriu moeda de 25 centavos.";
         report " -> Valor Acumulado atual: " & integer'image(to_integer(unsigned(valor_acumulado)));
-        
+
         if venda_concluida = '1' then
             report "[SUCESSO] Venda Concluida! Troco gerado: " & integer'image(to_integer(unsigned(valor_troco)));
         else
@@ -126,14 +129,16 @@ begin
         wait for clk_period;
 
         -- =========================================================
-        report "--- TESTE 2: Compra com Troco (Produto = R$ 3,00) ---";
+        report "--- TESTE 2: Compra com Troco (Produto 1 = R$ 3,00) ---";
         -- =========================================================
         
+        -- Estado 000: Escolher produto
         estado_atual <= "000";
         valor_produto <= std_logic_vector(to_unsigned(300, 11));
         wait for clk_period*2;
         report "Produto Selecionado! Preco travado internamente em: 300 centavos.";
         
+        -- Estado 001: Inserir dinheiro
         estado_atual <= "001";
         wait for clk_period;
 
@@ -142,7 +147,6 @@ begin
         enable_acumula <= '1';
         wait for clk_period;
         enable_acumula <= '0';
-        
         wait for clk_period*2;
         report "[!] Inseriu moeda de 200 centavos.";
         report " -> Saldo Restante a pagar: " & integer'image(to_integer(unsigned(saldo_restante)));
@@ -156,7 +160,7 @@ begin
         wait for clk_period*2;
         report "[!] Inseriu moeda de 200 centavos.";
         report " -> Valor Acumulado Total: " & integer'image(to_integer(unsigned(valor_acumulado)));
-        
+        -- Acumulado deve ser 400. venda_concluida = 1. troco = 100. saldo = 0.
         if venda_concluida = '1' then
             report "[SUCESSO] Venda Concluida! Troco a devolver: " & integer'image(to_integer(unsigned(valor_troco)));
         end if;
@@ -179,12 +183,13 @@ begin
         wait for clk_period*2;
         report "[!] Tentou inserir 50 centavos.";
         report " -> Valor Acumulado atual (deve continuar o mesmo): " & integer'image(to_integer(unsigned(valor_acumulado)));
+        -- O acumulado NÃO deve ter mudado (deve continuar em 400), porque o estado não era "001".
 
+        -- Finaliza a simulação
         report "===================================================";
         report "FIM DA SIMULACAO";
         report "===================================================";
 
-        -- Pausa a simulação para não entrar em loop infinito
         wait;
     end process;
 
