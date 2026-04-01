@@ -190,7 +190,7 @@ begin
         ------------------------------------------------------------------------
         sw(3 downto 0) <= "0000"; -- Seleciona produto 0
         press_key(key, 0);
-		  print_status;
+		print_status;
         
         sw(9 downto 4) <= "110000"; -- Tenta R$ 2,00 + R$ 1,00 simultaneamente
         print_log("Setando SW(9) e SW(8) em '1' (Invalido)");
@@ -202,7 +202,7 @@ begin
         sw(9 downto 4) <= "000000";
 
         ------------------------------------------------------------------------
-        print_log("TESTE 6: Avancar sem nenhuma nota selecionada");
+        print_log("TESTE 6: Prosseguir o estado inserir dinheiro sem nenhuma nota selecionada");
         ------------------------------------------------------------------------
         sw(3 downto 0) <= "0000"; press_key(key, 0); -- Seleciona produto
         sw(9 downto 4) <= "000000"; -- Nenhuma nota
@@ -212,6 +212,82 @@ begin
         print_log("O saldo restante nao deve ter diminuido.");
         print_status;
 
+        ------------------------------------------------------------------------
+        print_log("TESTE 7: Tentativa de cancelamento durante a liberacao");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0000"; -- Seleciona Produto 0 = 1,25
+        press_key(key, 0);
+        
+        sw(9 downto 4) <= "100000"; -- Insere R$ 2,00
+        print_log("Inserindo R$ 2,00 para testar a liberacao...");
+        press_key(key, 0);
+        sw(9 downto 4) <= "000000";
+        
+        -- Aguarda o estado de "Dispensar" (LEDR0 aceso)
+        loop
+            wait until rising_edge(clk_50);
+            if ledr(0) = '1' then
+                print_log("Produto esta sendo liberado! Pressionando CANCELAR no meio do processo...");
+                
+                -- Pressiona o botão de cancelar ENQUANTO o timer de 1s está rodando
+                key(1) <= '0';
+                wait for 100 ns;
+                key(1) <= '1';
+                
+                print_status;
+                exit;
+            end if;
+        end loop;
+        
+        print_log("A maquina deve ignorar o cancelamento e prosseguir para o troco.");
+        wait for 2.5 us; -- Aguarda o tempo normal de finalizacao (dispensa + troco)
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 8: Overflow de dinheiro (> 2047 centavos)");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "1111"; -- Produto F = 8,00)
+        press_key(key, 0);
+        
+        print_log("Inserindo 12 notas de R$ 2,00 (Total 2400 > limite de 2047)...");
+        for i in 1 to 12 loop
+            sw(9 downto 4) <= "100000";
+            press_key(key, 0);
+            sw(9 downto 4) <= "000000";
+            wait for 50 ns;
+        end loop;
+        
+        print_log("Verificando o comportamento do acumulador apos o Overflow:");
+        print_status;
+        
+        -- Cancela para limpar o "lixo" gerado pelo overflow e restaurar a maquina
+        print_log("Cancelando para limpar a maquina...");
+        press_key(key, 1);
+        wait for 1.2 us;
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 9: Inserir dinheiro antes da selecao do produto");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0010"; -- Produto 2
+        sw(9 downto 4) <= "100000"; -- Chave de R$ 2,00 levantada acidentalmente cedo demais
+        
+        print_log("Chave de R$ 2,00 levantada antes de confirmar o produto.");
+        print_log("Pressionando Confirmar/Avancar...");
+        press_key(key, 0);
+        
+        wait for 100 ns;
+        print_log("O dinheiro nao deve ter sido somado. Apenas o Produto 2 deve ter sido selecionado.");
+        print_status;
+        
+        sw(9 downto 4) <= "000000"; -- Abaixa a chave de dinheiro
+        
+        -- Cancela a operacao para deixar a maquina zerada para o fim do testbench
+        press_key(key, 1);
+        wait for 1.2 us;
+
+        -- Finaliza a simulação
+        report "===================================================";
+        report "FIM DA SIMULACAO";
+        report "===================================================";
         wait;
     end process;
 
