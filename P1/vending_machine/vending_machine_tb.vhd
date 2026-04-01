@@ -43,16 +43,16 @@ architecture sim of vending_machine_tb is
     begin
         write(l, string'("[STATUS] SW: ") & to_string(sw));
         write(l, string'(" | LEDR: ") & to_string(ledr));
-		  write(l, string'(" | HEX5 (Codigo): ") & to_string(hex5));
-		  writeline(output, l);
+		write(l, string'(" | HEX5 (Codigo): ") & to_string(hex5));
+		writeline(output, l);
         write(l, string'("HEX0: ") & to_string(hex0));
-		  writeline(output, l);
-		  write(l, string'("HEX1: ") & to_string(hex1));
-		  writeline(output, l);
-		  write(l, string'("HEX2: ") & to_string(hex2));
-		  writeline(output, l);
-		  write(l, string'("HEX3: ") & to_string(hex3));
-		  writeline(output, l);
+		writeline(output, l);
+		write(l, string'("HEX1: ") & to_string(hex1));
+		writeline(output, l);
+		write(l, string'("HEX2: ") & to_string(hex2));
+		writeline(output, l);
+		write(l, string'("HEX3: ") & to_string(hex3));
+		writeline(output, l);
 		 
         
     end procedure;
@@ -91,7 +91,7 @@ begin
         ------------------------------------------------------------------------
         print_log("TESTE 1: Verificando selecao de produtos via SW(3:0)");
         ------------------------------------------------------------------------
-        for i in 0 to 3 loop -- Testando os primeiros 4 para brevidade no console
+        for i in 0 to 15 loop -- Testando os produtos
             sw(3 downto 0) <= std_logic_vector(to_unsigned(i, 4));
             wait for 100 ns;
             print_log("Produto " & integer'image(i) & " selecionado.");
@@ -102,7 +102,7 @@ begin
         print_log("TESTE 2: Insercao de moedas e Cancelamento");
         ------------------------------------------------------------------------
         -- Inserir R$ 0,50 (SW3)
-		  press_key(key, 0); 
+		press_key(key, 0); 
         sw(9 downto 4) <= "001000"; 
         print_log("Selecionando R$ 0,50 no SW(7)");
         press_key(key, 0); 
@@ -200,6 +200,18 @@ begin
         print_log("O saldo no HEX nao deve ter alterado.");
         print_status;
         sw(9 downto 4) <= "000000";
+
+        ------------------------------------------------------------------------
+        print_log("TESTE 6: Avancar sem nenhuma nota selecionada");
+        ------------------------------------------------------------------------
+        sw(3 downto 0) <= "0000"; press_key(key, 0); -- Seleciona produto
+        sw(9 downto 4) <= "000000"; -- Nenhuma nota
+        print_log("Pressionando AVANCAR sem notas levantadas...");
+        press_key(key, 0);
+        wait for 100 ns;
+        print_log("O saldo restante nao deve ter diminuido.");
+        print_status;
+
         wait;
     end process;
 
