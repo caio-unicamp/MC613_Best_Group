@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="nv2You4PSaCehBWkB55T-1" parent="1" style="swimlane;startSize=0;" value="" vertex="1">
+        <mxCell id="nv2You4PSaCehBWkB55T-1" parent="1" style="swimlane;startSize=0;gradientColor=none;swimlaneFillColor=default;" value="" vertex="1">
           <mxGeometry height="560" width="730" x="90" y="50" as="geometry" />
         </mxCell>
         <mxCell id="nv2You4PSaCehBWkB55T-6" parent="nv2You4PSaCehBWkB55T-1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;BackgroundMemory&lt;/div&gt;&lt;div&gt;TileDiversity = 4&lt;/div&gt;" vertex="1">
@@ -130,6 +130,9 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="nv2You4PSaCehBWkB55T-43" parent="nv2You4PSaCehBWkB55T-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="PPU" vertex="1">
+          <mxGeometry height="60" width="110" x="160" y="250" as="geometry" />
+        </mxCell>
         <mxCell id="nv2You4PSaCehBWkB55T-39" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="nv2You4PSaCehBWkB55T-10" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
             <Array as="points">
@@ -158,6 +161,17 @@
         </mxCell>
         <mxCell id="nv2You4PSaCehBWkB55T-42" connectable="0" parent="nv2You4PSaCehBWkB55T-41" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="PixelColor" vertex="1">
           <mxGeometry relative="1" x="-0.0154" y="-1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nv2You4PSaCehBWkB55T-44" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="nv2You4PSaCehBWkB55T-17" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="200" y="720" as="sourcePoint" />
+            <mxPoint x="510" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="nv2You4PSaCehBWkB55T-45" connectable="0" parent="nv2You4PSaCehBWkB55T-44" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="Sprite coordinates" vertex="1">
+          <mxGeometry relative="1" x="0.2087" y="-1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
