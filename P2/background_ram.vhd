@@ -40,7 +40,7 @@ architecture rtl of background_ram is
         end loop;
         return ram_content;
     end function;
-
+    -- RAM funcionando
     -- Aqui a memória é criada já com os dados
     signal ram : ram_type := init_ram_bin;
     signal address : integer range 0 to 299; 
