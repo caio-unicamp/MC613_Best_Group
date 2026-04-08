@@ -7,5 +7,4 @@ incremental_db/
 .DS_Store
 
 # ignoring pll files
-pll/
-pll.*
+pll*
