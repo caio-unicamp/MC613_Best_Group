@@ -10,7 +10,7 @@ entity background_ram is
         x_pixel     : in  std_logic_vector(9 downto 0);
         y_pixel     : in  std_logic_vector(9 downto 0);
 
-        --se escreveremos ou leremos
+        --se escreveremos (1) ou leremos (0)
         wr          : in  std_logic;
         --escrita
         data_in     : in std_logic_vector(7 downto 0);
