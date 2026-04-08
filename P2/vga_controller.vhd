@@ -32,29 +32,29 @@ end VGA_Controller;
 
 ARCHITECTURE arch of VGA_Controller is
     -- Constantes para 640x480 @ 60Hz
-    constant H_ACTIVE : INTEGER := 640;
-    constant H_FP     : INTEGER := 16;
-    constant H_SYNC   : INTEGER := 96;
-    constant H_BP     : INTEGER := 48;
-    constant H_TOTAL  : INTEGER := 800;
+    constant H_ACTIVE : integer := 640;
+    constant H_FP     : integer := 16;
+    constant H_SYNC   : integer := 96;
+    constant H_BP     : integer := 48;
+    constant H_TOTAL  : integer := 800;
 
-    constant V_ACTIVE : INTEGER := 480;
-    constant V_FP     : INTEGER := 11;
-    constant V_SYNC   : INTEGER := 2;
-    constant V_BP     : INTEGER := 31;
-    constant V_TOTAL  : INTEGER := 524;
+    constant V_ACTIVE : integer := 480;
+    constant V_FP     : integer := 11;
+    constant V_SYNC   : integer := 2;
+    constant V_BP     : integer := 31;
+    constant V_TOTAL  : integer := 524;
 
-    signal h_count : INTEGER range 0 to H_TOTAL - 1 := 0;
-    signal v_count : INTEGER range 0 to V_TOTAL - 1 := 0;
+    signal h_count : integer range 0 to H_TOTAL - 1 := 0;
+    signal v_count : integer range 0 to V_TOTAL - 1 := 0;
     signal is_active : STD_LOGIC;
 begin
     VGA_CLK    <= pixel_clk;
-    VGA_SYNC_N <= '1'; -- Conforme enunciado
+    VGA_SYNC_N <= '1';  -- Fixo em 1
 
-    -- Contadores de Varredura
+    -- Varredura de pixels
     process(pixel_clk, reset_n)
     begin
-        if reset_n = '0' then
+        if reset_n = '0' then -- Ativo
             h_count <= 0;
             v_count <= 0;
         elsif rising_edge(pixel_clk) then
@@ -71,11 +71,11 @@ begin
         end if;
     end process;
 
-    -- Geração de Sincronismo (Polaridade Negativa para 480p)
+    -- Sincronisação do sinal com o momento correto 
     VGA_HS <= '0' when (h_count >= (H_ACTIVE + H_FP)) and (h_count < (H_ACTIVE + H_FP + H_SYNC)) else '1';
     VGA_VS <= '0' when (v_count >= (V_ACTIVE + V_FP)) and (v_count < (V_ACTIVE + V_FP + V_SYNC)) else '1';
 
-    -- Sinais de Controle de Vídeo
+    -- Sinais de controle de vídeo
     is_active <= '1' when (h_count < H_ACTIVE) and (v_count < V_ACTIVE) else '0';
     video_active <= is_active;
     VGA_BLANK_N  <= is_active;
@@ -84,7 +84,7 @@ begin
     pixel_x <= std_logic_vector(to_unsigned(h_count, 10)) when is_active = '1' else (others => '0');
     pixel_y <= std_logic_vector(to_unsigned(v_count, 10)) when is_active = '1' else (others => '0');
 
-    -- Buffer de Saída: Força preto fora da área ativa
+    -- Buffer de Saída, forçando tudo preto fora da área ativa
     VGA_R <= r_in when is_active = '1' else (others => '0');
     VGA_G <= g_in when is_active = '1' else (others => '0');
     VGA_B <= b_in when is_active = '1' else (others => '0');
