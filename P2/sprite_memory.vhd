@@ -14,7 +14,7 @@ entity sprite_memory is
         
         -- Saídas para a PPU/ROM
         pixel_on      : out std_logic;
-        sprite_id     : out integer range 0 to 3; -- ID para a ROM de desenho
+        sprite_id     : out integer range 0 to 3 -- ID para a ROM de desenho
     );
 end sprite_memory;
 
