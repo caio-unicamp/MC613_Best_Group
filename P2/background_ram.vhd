@@ -43,7 +43,7 @@ architecture rtl of background_ram is
 
     -- Aqui a memória é criada já com os dados
     signal ram : ram_type := init_ram_bin;
-    signal addres := integer range 0 to 299; 
+    signal address := integer range 0 to 299; 
 
 begin
     address <= 20*to_integer(unsigned(y_pixel(9 downto 5))) + to_integer(unsigned(x_pixel(9 downto 5)));
@@ -52,10 +52,10 @@ begin
     begin
         if rising_edge(clk) then
             if wr = '0' then
-                tile_id <= ram(acdress);
+                tile_id <= ram(address);
 
             else
-                ram(acdress) <= data_in;
+                ram(address) <= data_in;
 
         end if;
     end process;
