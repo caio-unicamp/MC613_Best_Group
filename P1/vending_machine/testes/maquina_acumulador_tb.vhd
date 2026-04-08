@@ -32,16 +32,17 @@ architecture behavior of maquina_acumulador_tb is
     signal valor_moeda     : std_logic_vector(10 downto 0) := (others => '0');
 
     -- Sinais de saída
-    signal saldo_restante  : std_logic_vector(10 downto 0):= (others => '0');
-    signal valor_troco     : std_logic_vector(10 downto 0):= (others => '0');
-    signal valor_acumulado : std_logic_vector(10 downto 0):= (others => '0');
-    signal venda_concluida : std_logic := '0';
+    signal saldo_restante  : std_logic_vector(10 downto 0);
+    signal valor_troco     : std_logic_vector(10 downto 0);
+    signal valor_acumulado : std_logic_vector(10 downto 0);
+    signal venda_concluida : std_logic;
 
     -- Definição do período do Clock (50 MHz = 20 ns)
     constant clk_period : time := 20 ns;
 
 begin
 
+    -- Instanciação da máquina acumuladora
     uut: maquina_acumulador PORT MAP (
         clk => clk,
         clr_acumula => clr_acumula,
