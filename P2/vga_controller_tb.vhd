@@ -7,7 +7,7 @@ ENTITY vga_controller_tb is
 end vga_controller_tb;
 
 ARCHITECTURE behavior of vga_controller_tb is 
-    component VGA_Controller
+    component vga_controller
     port(
          pixel_clk    : in  std_logic;
          reset_n      : in  std_logic;
@@ -58,7 +58,7 @@ ARCHITECTURE behavior of vga_controller_tb is
 begin
 
 
-    teste: VGA_Controller port MAP (
+    teste: vga_controller port map (
           pixel_clk    => pixel_clk,
           reset_n      => reset_n,
           r_in         => r_in,
