@@ -29,3 +29,64 @@ ENTITY VGA_Controller IS
     VGA_CLK      : OUT STD_LOGIC                      -- Clock do pixel (espelho do pixel_clk)
   );
 END VGA_Controller;
+
+ARCHITECTURE arch OF VGA_Controller IS
+    -- Constantes para 640x480 @ 60Hz
+    CONSTANT H_ACTIVE : INTEGER := 640;
+    CONSTANT H_FP     : INTEGER := 16;
+    CONSTANT H_SYNC   : INTEGER := 96;
+    CONSTANT H_BP     : INTEGER := 48;
+    CONSTANT H_TOTAL  : INTEGER := 800;
+
+    CONSTANT V_ACTIVE : INTEGER := 480;
+    CONSTANT V_FP     : INTEGER := 10;
+    CONSTANT V_SYNC   : INTEGER := 2;
+    CONSTANT V_BP     : INTEGER := 33;
+    CONSTANT V_TOTAL  : INTEGER := 525;
+
+    SIGNAL h_count : INTEGER RANGE 0 TO H_TOTAL - 1 := 0;
+    SIGNAL v_count : INTEGER RANGE 0 TO V_TOTAL - 1 := 0;
+    SIGNAL is_active : STD_LOGIC;
+BEGIN
+    VGA_CLK    <= pixel_clk;
+    VGA_SYNC_N <= '1'; -- Conforme enunciado
+
+    -- Contadores de Varredura
+    PROCESS(pixel_clk, reset_n)
+    BEGIN
+        IF reset_n = '0' THEN
+            h_count <= 0;
+            v_count <= 0;
+        ELSIF rising_edge(pixel_clk) THEN
+            IF h_count = H_TOTAL - 1 THEN
+                h_count <= 0;
+                IF v_count = V_TOTAL - 1 THEN
+                    v_count <= 0;
+                ELSE
+                    v_count <= v_count + 1;
+                END IF;
+            ELSE
+                h_count <= h_count + 1;
+            END IF;
+        END IF;
+    END PROCESS;
+
+    -- Geração de Sincronismo (Polaridade Negativa para 480p)
+    VGA_HS <= '0' WHEN (h_count >= (H_ACTIVE + H_FP)) AND (h_count < (H_ACTIVE + H_FP + H_SYNC)) ELSE '1';
+    VGA_VS <= '0' WHEN (v_count >= (V_ACTIVE + V_FP)) AND (v_count < (V_ACTIVE + V_FP + V_SYNC)) ELSE '1';
+
+    -- Sinais de Controle de Vídeo
+    is_active <= '1' WHEN (h_count < H_ACTIVE) AND (v_count < V_ACTIVE) ELSE '0';
+    video_active <= is_active;
+    VGA_BLANK_N  <= is_active;
+
+    -- Coordenadas para a PPU
+    pixel_x <= std_logic_vector(to_unsigned(h_count, 10)) WHEN is_active = '1' ELSE (OTHERS => '0');
+    pixel_y <= std_logic_vector(to_unsigned(v_count, 10)) WHEN is_active = '1' ELSE (OTHERS => '0');
+
+    -- Buffer de Saída: Força preto fora da área ativa
+    VGA_R <= r_in WHEN is_active = '1' ELSE (OTHERS => '0');
+    VGA_G <= g_in WHEN is_active = '1' ELSE (OTHERS => '0');
+    VGA_B <= b_in WHEN is_active = '1' ELSE (OTHERS => '0');
+
+END arch;
