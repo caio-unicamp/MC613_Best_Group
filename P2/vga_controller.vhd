@@ -2,7 +2,7 @@ LIBRARY IEEE;
 USE IEEE.STD_LOGIC_1164.ALL;
 USE IEEE.NUMERIC_STD.ALL;
 
-ENTITY VGA_Controller IS
+ENTITY vga_controller IS
   port (
     -- Entradas de Controle de Clock e Reset
     pixel_clk    : in  STD_LOGIC;                     -- Clock de 25.175 MHz gerado pelo PLL
