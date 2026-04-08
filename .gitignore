@@ -5,3 +5,6 @@ incremental_db/
 
 # ignoring MacOS native files
 .DS_Store
+
+# ignoring pll files
+pll*

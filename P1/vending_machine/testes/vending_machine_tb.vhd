@@ -206,7 +206,7 @@ begin
         ------------------------------------------------------------------------
         sw(3 downto 0) <= "0000"; press_key(key, 0); -- Seleciona produto
         sw(9 downto 4) <= "000000"; -- Nenhuma nota
-		  print_status;
+        print_status;
         print_log("Pressionando AVANCAR sem notas levantadas...");
         press_key(key, 0);
         wait for 100 ns;
@@ -228,7 +228,7 @@ begin
         loop
             wait until rising_edge(clk_50);
             if ledr(0) = '1' then
-					 print_status;
+                print_status;
                 print_log("Produto esta sendo liberado! Pressionando CANCELAR no meio do processo...");
                 
                 -- Pressiona o botão de cancelar ENQUANTO o timer de 1s está rodando
@@ -250,14 +250,14 @@ begin
         sw(3 downto 0) <= "1111"; -- Produto F = 8,00)
         press_key(key, 0);
         
-		  print_status;
-		  
-		  print_log("Inserindo 12 notas de R$ 2,00 (Total 2400 > limite de 2047)...");
+        print_status;
+        
+        print_log("Inserindo 12 notas de R$ 2,00 (Total 2400 > limite de 2047)...");
         for i in 1 to 12 loop
             sw(9 downto 4) <= "100000";
             press_key(key, 0);
             sw(9 downto 4) <= "000000";
-				print_status;
+            print_status;
             wait for 50 ns;
         end loop;
         
@@ -274,7 +274,7 @@ begin
         ------------------------------------------------------------------------
         sw(3 downto 0) <= "0010"; -- Produto 2
         sw(9 downto 4) <= "100000"; -- Chave de R$ 2,00 levantada acidentalmente cedo demais
-		  wait for 50 ns;
+        wait for 50 ns;
         print_status;
         print_log("Chave de R$ 2,00 levantada antes de confirmar o produto.");
         print_log("Pressionando Confirmar/Avancar...");
