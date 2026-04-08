@@ -24,7 +24,7 @@ ENTITY VGA_Controller IS
     VGA_B        : out STD_LOGIC_VECTOR(7 downto 0);  -- Saída VGA Azul
     VGA_HS       : out STD_LOGIC;                     -- Sincronismo Horizontal
     VGA_VS       : out STD_LOGIC;                     -- Sincronismo Vertical
-    VGA_BLANK_N  : out STD_LOGIC;                     -- Fora da área visível (ou seja, deve ser '0' no blanking)
+    VGA_BLANK_N  : out STD_LOGIC;                     -- Fora da área visível
     VGA_SYNC_N   : out STD_LOGIC;                     -- Sincronização de vídeo (fixo em '1')
     VGA_CLK      : out STD_LOGIC                      -- Clock do pixel (espelho do pixel_clk)
   );
@@ -50,6 +50,7 @@ ARCHITECTURE arch of VGA_Controller is
 begin
     VGA_CLK    <= pixel_clk;
     VGA_SYNC_N <= '1';  -- Fixo em 1
+    VGA_BLANK_N  <= 0;  -- Fixo em 0
 
     -- Varredura de pixels
     process(pixel_clk, reset_n)
@@ -78,7 +79,6 @@ begin
     -- Sinais de controle de vídeo
     is_active <= '1' when (h_count < H_ACTIVE) and (v_count < V_ACTIVE) else '0';
     video_active <= is_active;
-    VGA_BLANK_N  <= is_active;
 
     -- Coordenadas para a PPU
     pixel_x <= std_logic_vector(to_unsigned(h_count, 10)) when is_active = '1' else (others => '0');
