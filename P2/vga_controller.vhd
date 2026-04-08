@@ -50,7 +50,6 @@ ARCHITECTURE arch of VGA_Controller is
 begin
     VGA_CLK    <= pixel_clk;
     VGA_SYNC_N <= '1';  -- Fixo em 1
-    VGA_BLANK_N  <= 0;  -- Fixo em 0
 
     -- Varredura de pixels
     process(pixel_clk, reset_n)
@@ -79,6 +78,7 @@ begin
     -- Sinais de controle de vídeo
     is_active <= '1' when (h_count < H_ACTIVE) and (v_count < V_ACTIVE) else '0';
     video_active <= is_active;
+    VGA_BLANK_N  <= is_active;  
 
     -- Coordenadas para a PPU
     pixel_x <= std_logic_vector(to_unsigned(h_count, 10)) when is_active = '1' else (others => '0');
