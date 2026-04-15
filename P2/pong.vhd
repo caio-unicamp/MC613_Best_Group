@@ -25,9 +25,18 @@ ARCHITECTURE structural OF de1_soc_vga_top IS
     signal w_pixel_x     : std_logic_vector(9 downto 0);
     signal w_pixel_y     : std_logic_vector(9 downto 0);
     signal w_video_active: std_logic;
+    signal pll_locked    : std_logic;
     signal w_r, w_g, w_b : std_logic_vector(7 downto 0);
 
     signal w_reset_n     : std_logic;
+
+    component pll is 
+    port (
+        refclk      : in std_logic;
+        rst         : in std_logic;
+        outclk_0    : out std_logic;
+        locked      : out std_logic
+    );
 
 BEGIN
 
@@ -35,11 +44,12 @@ BEGIN
 
     -- 1. INSTÂNCIA DO PLL (Você deve gerar este componente no Quartus IP Catalog)
     -- O nome 'my_pll' deve ser o mesmo que você deu ao gerar o arquivo .vhd
-    pll_inst : entity work.my_pll 
+    pll_inst : entity work.pll 
         port map (
             refclk   => CLOCK_50,
             rst      => not KEY(0),  -- KEY é active-low, PLL costuma ser active-high
-            outclk_0 => w_pixel_clk  -- Saída de 25.175 MHz
+            outclk_0 => w_pixel_clk,  -- Saída de 25.175 MHz
+            locked => pll_locked
         );
 
     -- 2. INSTÂNCIA DA PPU
