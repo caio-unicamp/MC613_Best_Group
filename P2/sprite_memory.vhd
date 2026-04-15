@@ -14,14 +14,16 @@ entity sprite_memory is
         
         -- Saídas para a PPU/ROM
         pixel_on      : out std_logic;
-        sprite_id     : out integer range 0 to 3 -- ID para a ROM de desenho
+        sprite_id     : out integer range 0 to 3; -- ID para a ROM 
+        rom_addr      : out integer range 0 to 1023 
     );
 end sprite_memory;
 
 architecture Behavioral of sprite_memory is
-    constant SIZE : integer := 30; 
-    constant P1_Y : integer := 15;  
-    constant P2_Y : integer := 600; 
+    constant TILE_SIZE : integer := 32; 
+    constant PADDLE_SIZE : integer := 96; 
+    constant P1_Y : integer := 40;  
+    constant P2_Y : integer := 440; 
 begin
     process(pixel_x, pixel_y, ball_x, ball_y, p1_x, p2_x)
         variable rel_x : integer;
@@ -32,31 +34,34 @@ begin
         sprite_id <= 0;
 
         -- BOLA (ID 1)
-        if (pixel_x >= ball_x and pixel_x < ball_x + SIZE and
-            pixel_y < ball_y and pixel_y >= ball_y - SIZE) then
+        if (pixel_x >= ball_x and pixel_x < ball_x + TILE_SIZE and
+            pixel_y < ball_y and pixel_y >= ball_y - TILE_SIZE) then
             
             pixel_on <= '1';
             sprite_id <= 1;
             rel_x := pixel_x - ball_x;
             rel_y := pixel_y - ball_y;
+            rom_addr <= (rel_y * TILE_SIZE) + rel_x;
 
-        -- PADDLE 1 (ID 2)
-        elsif (pixel_x >= P1_Y and pixel_x < P1_Y + SIZE and
-               pixel_y < p1_x and pixel_y >= p1_x - SIZE) then
-            
-            pixel_on <= '1';
-            sprite_id <= 2;
-            rel_x := pixel_x - P1_Y;
-            rel_y := pixel_y - p1_x;
+					  -- PADDLE 1 (ID 2)
+			elsif (pixel_x >= p1_x and pixel_x < p1_x + PADDLE_SIZE and
+					 pixel_y >= P1_Y and pixel_y < P1_Y + TILE_SIZE) then
+				 
+				 pixel_on <= '1';
+				 sprite_id <= 2;
+				 rel_x := (pixel_x - p1_x) mod TILE_SIZE; -- Repete o tile 3 vezes 
+				 rel_y := pixel_y - P1_Y;
+				 rom_addr <= (rel_y * TILE_SIZE) + rel_x; 
 
-        -- PADDLE 2 (ID 2)
-        elsif (pixel_x >= P2_Y and pixel_x < P2_Y + SIZE and
-               pixel_y < p2_x and pixel_y >= p2_x - SIZE) then
-            
-            pixel_on <= '1';
-            sprite_id <= 2;
-            rel_x := pixel_x - P2_Y;
-            rel_y := pixel_y - p2_x;
-        end if;
+			-- PADDLE 2 (ID 2)
+			elsif (pixel_x >= p2_x and pixel_x < p2_x + PADDLE_SIZE and
+					 pixel_y >= P2_Y and pixel_y < P2_Y + TILE_SIZE) then
+				 
+				 pixel_on <= '1'; -- Estava '0' no seu código original 
+				 sprite_id <= 2;
+				 rel_x := (pixel_x - p2_x) mod TILE_SIZE;
+				 rel_y := pixel_y - P2_Y;
+				 rom_addr <= (rel_y * TILE_SIZE) + rel_x; 
+			end if;
     end process;
 end Behavioral;
