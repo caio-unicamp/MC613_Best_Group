@@ -24,7 +24,7 @@ architecture rtl of background_ram is
 
     --leitura do txt
     impure function init_ram_bin return ram_type is
-        file text_file       : text open read_mode is "tilemap.txt"; -- O nome do seu arquivo
+        file text_file       : text open read_mode is "tilemap.txt"; 
         variable text_line   : line;
         variable ram_content : ram_type;
         variable bv          : bit_vector(7 downto 0);
