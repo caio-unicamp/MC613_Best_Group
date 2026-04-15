@@ -14,7 +14,7 @@ entity sprite_memory is
         
         -- Saídas para a PPU/ROM
         pixel_on      : out std_logic;
-        sprite_id     : out integer range 0 to 3 -- ID para a ROM 
+        sprite_id     : out integer range 0 to 3; -- ID para a ROM 
         rom_addr      : out integer range 0 to 1023 
     );
 end sprite_memory;
@@ -43,25 +43,25 @@ begin
             rel_y := pixel_y - ball_y;
             rom_addr <= (rel_y * TILE_SIZE) + rel_x;
 
-        -- PADDLE 1 (ID 2)
-        elsif (pixel_x >= P1_Y and pixel_x < P1_Y + PADDLE_SIZE and
-               pixel_y < p1_x and pixel_y >= p1_x - PADDLE_SIZE) then
-            
-            pixel_on <= '1';
-            sprite_id <= 2;
-            rel_x := (pixel_x - p1_x) mod TILE_SIZE; 
-            rel_y := pixel_y - P1_Y;
-            rom_addr <= (rel_y * TILE_SIZE) + rel_x;
+					  -- PADDLE 1 (ID 2)
+			elsif (pixel_x >= p1_x and pixel_x < p1_x + PADDLE_SIZE and
+					 pixel_y >= P1_Y and pixel_y < P1_Y + TILE_SIZE) then
+				 
+				 pixel_on <= '1';
+				 sprite_id <= 2;
+				 rel_x := (pixel_x - p1_x) mod TILE_SIZE; -- Repete o tile 3 vezes 
+				 rel_y := pixel_y - P1_Y;
+				 rom_addr <= (rel_y * TILE_SIZE) + rel_x; 
 
-        -- PADDLE 2 (ID 2)
-        elsif (pixel_x >= P2_Y and pixel_x < P2_Y + PADDLE_SIZE and
-               pixel_y < p2_x and pixel_y >= p2_x - PADDLE_SIZE) then
-            
-            pixel_on <= '1';
-            sprite_id <= 2;
-            rel_x := (pixel_x - p2_x) mod TILE_SIZE;
-            rel_y := pixel_y - P2_Y_FIXO;
-            rom_addr <= (rel_y * TILE_SIZE) + rel_x;
-        end if;
+			-- PADDLE 2 (ID 2)
+			elsif (pixel_x >= p2_x and pixel_x < p2_x + PADDLE_SIZE and
+					 pixel_y >= P2_Y and pixel_y < P2_Y + TILE_SIZE) then
+				 
+				 pixel_on <= '1'; -- Estava '0' no seu código original 
+				 sprite_id <= 2;
+				 rel_x := (pixel_x - p2_x) mod TILE_SIZE;
+				 rel_y := pixel_y - P2_Y;
+				 rom_addr <= (rel_y * TILE_SIZE) + rel_x; 
+			end if;
     end process;
 end Behavioral;

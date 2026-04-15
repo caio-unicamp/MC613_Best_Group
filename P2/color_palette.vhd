@@ -18,7 +18,9 @@ begin
     begin
         -- Proteção: Se estiver fora da área visível (Blanking), a cor deve ser PRETA
         if video_on = '0' then
-            rgb_out <= (others => '0'); -- "000000000000"
+            r_out <= (others => '0');
+            g_out <= (others => '0');
+            b_out <= (others => '0');
         else
             case color_idx is
                 when 0 => 
