@@ -15,7 +15,7 @@ entity game_logic is
         --+
         --+
         --+
-        --\/
+        --&or
         p1_x        : out integer range 0 to 639;
         p2_x        : out integer range 0 to 639;
         ball_x      : out integer range 0 to 639;
