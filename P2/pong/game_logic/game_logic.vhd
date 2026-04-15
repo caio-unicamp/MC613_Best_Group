@@ -6,7 +6,7 @@ entity game_logic is
     port (
         pixel_clk    : in  std_logic; -- Clock de 25.175 MHz gerado pelo PLL
         reset_n     : in  std_logic;
-        keys        : in  std_logic_vector(3 downto 0); -- [P1L, P1R, P2L, P2R]
+        key        : in  std_logic_vector(3 downto 0); -- [P1L, P1R, P2L, P2R]
         
         -- Posições para a PPU, que referenciam o canto superior esquerdo de cada objeto
         -- A orientação é 
@@ -67,8 +67,8 @@ begin
             dy <= 3;
         elsif rising_edge(pixel_clk) then
             -- Movimento jogador 1
-            if not(keys(3) = '0' and keys(2) = '0') then    -- Se aperta os dois botões ao mesmo tempo fica parado
-                if keys(3) = '0' and pos_p1_x > 0 then    -- Esquerda
+            if not(key(3) = '0' and key(2) = '0') then    -- Se aperta os dois botões ao mesmo tempo fica parado
+                if key(3) = '0' and pos_p1_x > 0 then    -- Esquerda
                     if pos_p1_x < SPEED then  -- Pra não passar de 0
                         pos_p1_x <= 0;
                     else 
@@ -76,7 +76,7 @@ begin
                     end if
                 end if;
 
-                if keys(2) = '0' and pos_p1_x < SCREEN_W - P_WIDTH - 1 then -- Direita
+                if key(2) = '0' and pos_p1_x < SCREEN_W - P_WIDTH - 1 then -- Direita
                     if pos_p1_x > SPEED + SCREEN_W - P_WIDTH - 1 then  -- Pra não passar do máximo
                         pos_p1_x <= SCREEN_W - P_WIDTH - 1;   -- Seta no máximo
                     else 
@@ -86,8 +86,8 @@ begin
             end if;
 
             -- Movimento jogador 2
-            if not(keys(1) = '0' and keys(0) = '0') then    -- Se aperta os dois botões ao mesmo tempo fica parado
-                if keys(1) = '0' and pos_p1_x > 0 then    -- Esquerda
+            if not(key(1) = '0' and key(0) = '0') then    -- Se aperta os dois botões ao mesmo tempo fica parado
+                if key(1) = '0' and pos_p1_x > 0 then    -- Esquerda
                     if pos_p2_x < SPEED then  -- Pra não passar de 0
                         pos_p2_x <= 0;
                     else 
@@ -95,7 +95,7 @@ begin
                     end if
                 end if;
 
-                if keys(2) = '0' and pos_p2_x < SCREEN_W - P_WIDTH - 1 then -- Direita
+                if key(2) = '0' and pos_p2_x < SCREEN_W - P_WIDTH - 1 then -- Direita
                     if pos_p2_x > SPEED + SCREEN_W - P_WIDTH - 1 then  -- Pra não passar do máximo
                         pos_p2_x <= SCREEN_W - P_WIDTH - 1;   -- Seta no máximo
                     else 
