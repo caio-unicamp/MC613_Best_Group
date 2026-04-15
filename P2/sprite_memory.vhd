@@ -22,8 +22,8 @@ end sprite_memory;
 architecture Behavioral of sprite_memory is
     constant TILE_SIZE : integer := 32; 
     constant PADDLE_SIZE : integer := 96; 
-    constant P1_Y : integer := 40;  
-    constant P2_Y : integer := 440; 
+    constant P1_Y : integer := 32;  
+    constant P2_Y : integer := 432; 
 begin
     process(pixel_x, pixel_y, ball_x, ball_y, p1_x, p2_x)
         variable rel_x : integer;
@@ -35,7 +35,7 @@ begin
 
         -- BOLA (ID 1)
         if (pixel_x >= ball_x and pixel_x < ball_x + TILE_SIZE and
-            pixel_y < ball_y and pixel_y >= ball_y - TILE_SIZE) then
+            pixel_y >= ball_y and pixel_y < ball_y + TILE_SIZE) then
             
             pixel_on <= '1';
             sprite_id <= 1;

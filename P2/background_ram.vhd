@@ -24,21 +24,17 @@ architecture rtl of background_ram is
     -- DEFINIÇÃO DO MAPA (Substitui o arquivo TXT)
     -- Cada linha representa o ID de um tile na grade 20x15
     constant MAP_DATA : ram_type := (
-        -- Linhas 0 a 6 (Zeros)
-        0 to 129 => x"00",
+
+        -- Linha 6: Topo da "bola" na coluna 10 (6 * 20 + 10 = 130)
+        129 to 130 => x"02", 
         
-        -- Linha 7: Seus dois "02" (Personagem ou item)
-        130 => x"02", 131 => x"02",
-        132 to 139 => x"00",
+        -- Linha 7: Faixa branca com a base da "bola" na coluna 10 (7 * 20 + 10 = 150)
+        140 to 159 => x"01", -- Metade esquerda da faixa
+        169 to 170 => x"03",        -- Base da bola (Tile 3) no meio da faixa
+
+
         
-        -- Linha 7 (cont): Seus "01" (Chão/Plataforma)
-        140 to 159 => x"01",
-        
-        -- Linhas seguintes
-        160 to 168 => x"00",
-        169 => x"03", 170 => x"03", -- Seus "03"
-        
-        -- O restante preenchemos com zero
+        -- Garante que qualquer índice não especificado seja zero
         others => x"00"
     );
 
