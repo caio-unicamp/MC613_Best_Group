@@ -28,9 +28,9 @@ ENTITY vga_controller IS
     VGA_SYNC_N   : out STD_LOGIC;                     -- Sincronização de vídeo (fixo em '1')
     VGA_CLK      : out STD_LOGIC                      -- Clock do pixel (espelho do pixel_clk)
   );
-end VGA_Controller;
+end vga_controller;
 
-ARCHITECTURE arch of VGA_Controller is
+ARCHITECTURE arch of vga_controller is
     -- Constantes para 640x480 @ 60Hz
     constant H_ACTIVE : integer := 640;
     constant H_FP     : integer := 16;
