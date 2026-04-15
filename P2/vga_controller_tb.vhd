@@ -57,16 +57,17 @@ ARCHITECTURE behavior of vga_controller_tb is
     constant clk_period : time := 39.72 ns;
 begin
 
-
     teste: vga_controller port map (
           pixel_clk    => pixel_clk,
           reset_n      => reset_n,
           r_in         => r_in,
           g_in         => g_in,
           b_in         => b_in,
+
           pixel_x      => pixel_x,
           pixel_y      => pixel_y,
           video_active => video_active,
+
           VGA_R        => VGA_R,
           VGA_G        => VGA_G,
           VGA_B        => VGA_B,
@@ -103,20 +104,18 @@ begin
         wait;
     end process;
 
-    -- Processo para gerar padrões de cores dinâmicos (opcional)
-    -- Isso ajuda a ver se r_in, g_in e b_in estão sendo passados corretamente para as saídas VGA
-    color_gen: process(pixel_x, pixel_y, video_active)
+    process(pixel_x, pixel_y, video_active)
     begin
         if video_active = '1' then
-            -- Gera um padrão de degradê simples baseado na posição X
-            r_in <= pixel_x(7 downto 0);
+            -- Vermelho aumenta conforme X avança, Verde conforme Y avança
+            r_in <= pixel_x(7 downto 0); 
             g_in <= pixel_y(7 downto 0);
-            b_in <= (others => '1');
+            b_in <= (others => '1'); -- Fundo azulado fixo
         else
             r_in <= (others => '0');
             g_in <= (others => '0');
             b_in <= (others => '0');
         end if;
     end process;
-
+    
 end;
