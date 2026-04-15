@@ -32,9 +32,8 @@ architecture rtl of background_ram is
         130 => x"02", 
         
         -- Linha 7: Faixa branca com a base da "bola" na coluna 10 (7 * 20 + 10 = 150)
-        140 to 159 => x"01", -- Metade esquerda da faixa
+        140 to 159 => x"01", 
         170 => x"03",        -- Base da bola (Tile 3) no meio da faixa
-        151 to 159 => x"01", -- Metade direita da faixa
 
         -- Linha 8 em diante: Tudo Preto
         160 to 299 => x"00",
