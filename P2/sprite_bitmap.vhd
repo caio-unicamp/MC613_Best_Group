@@ -16,8 +16,8 @@ architecture Behavioral of sprite_bitmap is
     type rom_type is array (0 to 1023) of integer range 0 to 3;
 
     constant PADDLE_TILE_BITMAP : rom_type := (
-        0 to 511    => 0, 
-        512 to 1023 => 1  
+        0 to 511    => 1, 
+        512 to 1023 => 0  
     );
     
     -- Para a bola, podemos fazer o mesmo

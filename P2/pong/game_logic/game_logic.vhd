@@ -52,6 +52,9 @@ architecture Behavioral of game_logic is
     constant P1_Y_FIXED : integer := B_SIZE; -- Jogador 1 (topo) tem y fixo em um gap do tamanho da bola 
     constant P2_Y_FIXED : integer := SCREEN_H - B_SIZE - P_HEIGHT - 1;  -- Jogador 2 (base) está a B_SIZE + P_HEIGHT do máximo
 
+	 constant UPDATE_FREQ : integer := 250000; 
+    signal update_counter : integer range 0 to UPDATE_FREQ := 0;
+	 
     signal pos_p1_x, pos_p2_x : integer range 0 to 639 := MEIO_PLAYER_X;  
     signal b_x : integer range 0 to 639 := MEIO_BOLA_X; 
     signal b_y : integer range 0 to 479 := MEIO_BOLA_Y;  
@@ -96,104 +99,110 @@ begin
             else 
                 random_seed <= random_seed + 1; 
             end if;
+				if update_counter = UPDATE_FREQ then
+                update_counter <= 0; -- Reinicia o contador
+					 
+					if current_state = START then   -- Aguardando o início do jogo
+						 -- Se qualquer botão for pressionado
+						 if key(0)='0' or key(1)='0' or key(2)='0' or key(3)='0' then
+							  current_state <= PLAY;
+							  
+							  -- Sorteia a direção inicial da bola usando a 'seed' daquele exato nanossegundo
+							  if random_seed = 0 then    dx <= SPEED_BALL;  dy <= SPEED_BALL;
+							  elsif random_seed = 1 then dx <= -SPEED_BALL; dy <= SPEED_BALL;
+							  elsif random_seed = 2 then dx <= SPEED_BALL;  dy <= -SPEED_BALL;
+							  else                       dx <= -SPEED_BALL; dy <= -SPEED_BALL;
+							  end if;
+						 end if;
 
-            if current_state = START then   -- Aguardando o início do jogo
-                -- Se qualquer botão for pressionado
-                if key(0)='0' or key(1)='0' or key(2)='0' or key(3)='0' then
-                    current_state <= PLAY;
-                    
-                    -- Sorteia a direção inicial da bola usando a 'seed' daquele exato nanossegundo
-                    if random_seed = 0 then    dx <= SPEED_BALL;  dy <= SPEED_BALL;
-                    elsif random_seed = 1 then dx <= -SPEED_BALL; dy <= SPEED_BALL;
-                    elsif random_seed = 2 then dx <= SPEED_BALL;  dy <= -SPEED_BALL;
-                    else                       dx <= -SPEED_BALL; dy <= -SPEED_BALL;
-                    end if;
-                end if;
+						 else
+						 
+						 -- Movimento do jogador 1
+							if key(3) = '0' and key(2) = '1' then -- Somente Esquerda
+								 if pos_p1_x > 0 then
+									  if pos_p1_x < SPEED_PLAYER then
+											pos_p1_x <= 0;
+									  else
+											pos_p1_x <= pos_p1_x - SPEED_PLAYER;
+									  end if;
+								 end if;
+							elsif key(2) = '0' and key(3) = '1' then -- Somente Direita
+								 if pos_p1_x < SCREEN_W - P_WIDTH - 1 then
+									  if pos_p1_x > SCREEN_W - P_WIDTH - 1 - SPEED_PLAYER then
+											pos_p1_x <= SCREEN_W - P_WIDTH - 1;
+									  else
+											pos_p1_x <= pos_p1_x + SPEED_PLAYER;
+									  end if;
+								 end if;
+							end if;
 
-                else
-                -- Movimento do jogador 1
-                if not(key(3) = '0' and key(2) = '0') then  -- Se aperta os dois botões ao mesmo tempo fica parado
-                    if key(3) = '0' and pos_p1_x > 0 then -- Esquerda
-                        if pos_p1_x < SPEED_PLAYER then  -- Pra não passar de 0
-                            pos_p1_x <= 0;  -- Seta no mínimo
-                        else 
-                            pos_p1_x <= pos_p1_x - SPEED_PLAYER; 
-                        end if;
-                    end if;
+							-- Movimento do jogador 2
+							if key(1) = '0' and key(0) = '1' then -- Somente Esquerda
+								 if pos_p2_x > 0 then
+									  if pos_p2_x < SPEED_PLAYER then
+											pos_p2_x <= 0;
+									  else
+											pos_p2_x <= pos_p2_x - SPEED_PLAYER;
+									  end if;
+								 end if;
+							elsif key(0) = '0' and key(1) = '1' then -- Somente Direita
+								 if pos_p2_x < SCREEN_W - P_WIDTH - 1 then
+									  if pos_p2_x > SCREEN_W - P_WIDTH - 1 - SPEED_PLAYER then
+											pos_p2_x <= SCREEN_W - P_WIDTH - 1;
+									  else
+											pos_p2_x <= pos_p2_x + SPEED_PLAYER;
+									  end if;
+								 end if;
+							end if;
 
-                    else if key(2) = '0' and pos_p1_x < SCREEN_W - P_WIDTH - 1 then -- Direita
-                        if pos_p1_x > SCREEN_W - P_WIDTH - 1 - SPEED_PLAYER then  -- Pra não passar do máximo
-                            pos_p1_x <= SCREEN_W - P_WIDTH - 1;   -- Seta no máximo
-                        else 
-                            pos_p1_x <= pos_p1_x + SPEED_PLAYER; 
-                        end if;
-                    end if;
-                end if;
+						 -- Física da bola
+						 next_b_x := b_x + dx;
+						 next_b_y := b_y + dy;
 
-                -- Movimento do jogador 2
-                if not(key(1) = '0' and key(0) = '0') then    -- Se aperta os dois botões ao mesmo tempo fica parado
-                    if key(1) = '0' and pos_p2_x > 0 then -- Esquerda
-                        if pos_p2_x < SPEED_PLAYER then  -- Pra não passar de 0
-                            pos_p2_x <= 0;  -- Seta no mínimo
-                        else
-                            pos_p2_x <= pos_p2_x - SPEED_PLAYER; 
-                        end if;
-                    end if;
-
-                    else if key(0) = '0' and pos_p2_x < SCREEN_W - P_WIDTH - 1 then -- Direita
-                        if pos_p2_x > SCREEN_W - P_WIDTH - 1 - SPEED_PLAYER then  -- Pra não passar do máximo
-                            pos_p2_x <= SCREEN_W - P_WIDTH - 1;   -- Seta no máximo
-                        else 
-                            pos_p2_x <= pos_p2_x + SPEED_PLAYER; 
-                        end if;
-                    end if;
-                end if;
-
-                -- Física da bola
-                next_b_x := b_x + dx;
-                next_b_y := b_y + dy;
-
-                -- Colisão com as Paredes Laterais (Eixo X)
-                if next_b_x <= 0 then 
-                    b_x <= 0;   -- Crava na borda esquerda
-                    dx <= abs(dx);  -- Inverte o movimento para a direita
-                elsif next_b_x >= (SCREEN_W - B_SIZE - 1) then 
-                    b_x <= SCREEN_W - B_SIZE - 1; -- Crava na borda direita
-                    dx <= -abs(dx); -- Inverte o movimento para a esquerda
-                else
-                    b_x <= next_b_x; -- Movimento normal
-                end if;
-                
-                -- Colisão e Pontuação (Eixo Y)
-                
-                -- Colisão com o Jogador 1 (Topo)
-                if (next_b_y <= P1_Y_FIXED + P_HEIGHT) and (b_x + B_SIZE >= pos_p1_x) and (b_x <= pos_p1_x + P_WIDTH) then
-                    b_y <= P1_Y_FIXED + P_HEIGHT; -- Crava na barra
-                    dy <= abs(dy); -- Rebate para baixo
-                
-                -- Passou do Jogador 1 (Ponto para o Jogador 2)
-                elsif next_b_y <= P1_Y_FIXED + P_HEIGHT then 
-                    s2 <= s2 + 1;
-                    b_x <= MEIO_BOLA_X; 
-                    b_y <= MEIO_BOLA_Y;
-                    current_state <= IDLE; -- Espera jogadores estarem prontos para lançar a bola
-                
-                -- Colisão com o Jogador 2 (Base)
-                elsif (next_b_y + B_SIZE >= P2_Y_FIXED) and (b_x + B_SIZE >= pos_p2_x) and (b_x <= pos_p2_x + P_WIDTH) then
-                    b_y <= P2_Y_FIXED - B_SIZE; -- Crava na barra
-                    dy <= -abs(dy); -- Rebate para cima
-                
-                -- Passou do Jogador 2 (Ponto para o jogador P1)
-                elsif (next_b_y + B_SIZE) >= P2_Y_FIXED then 
-                    s1 <= s1 + 1;
-                    b_x <= MEIO_BOLA_X; 
-                    b_y <= MEIO_BOLA_Y;
-                    current_state <= IDLE; -- Espera jogadores estarem prontos para lançar a bola
-                
-                -- Movimento no eixo Y normal se não bateu em nada
-                else
-                    b_y <= next_b_y;
-                end if;
+						 -- Colisão com as Paredes Laterais (Eixo X)
+						 if next_b_x <= 0 then 
+							  b_x <= 0;   -- Crava na borda esquerda
+							  dx <= abs(dx);  -- Inverte o movimento para a direita
+						 elsif next_b_x >= (SCREEN_W - B_SIZE - 1) then 
+							  b_x <= SCREEN_W - B_SIZE - 1; -- Crava na borda direita
+							  dx <= -abs(dx); -- Inverte o movimento para a esquerda
+						 else
+							  b_x <= next_b_x; -- Movimento normal
+						 end if;
+						 
+						 -- Colisão e Pontuação (Eixo Y)
+						 
+						 -- Colisão com o Jogador 1 (Topo)
+						 if (next_b_y <= P1_Y_FIXED + P_HEIGHT) and (b_x + B_SIZE >= pos_p1_x) and (b_x <= pos_p1_x + P_WIDTH) then
+							  b_y <= P1_Y_FIXED + P_HEIGHT; -- Crava na barra
+							  dy <= abs(dy); -- Rebate para baixo
+						 
+						 -- Passou do Jogador 1 (Ponto para o Jogador 2)
+						 elsif next_b_y <= P1_Y_FIXED + P_HEIGHT then 
+							  s2 <= s2 + 1;
+							  b_x <= MEIO_BOLA_X; 
+							  b_y <= MEIO_BOLA_Y;
+							  current_state <= START; -- Espera jogadores estarem prontos para lançar a bola
+						 
+						 -- Colisão com o Jogador 2 (Base)
+						 elsif (next_b_y + B_SIZE >= P2_Y_FIXED) and (b_x + B_SIZE >= pos_p2_x) and (b_x <= pos_p2_x + P_WIDTH) then
+							  b_y <= P2_Y_FIXED - B_SIZE; -- Crava na barra
+							  dy <= -abs(dy); -- Rebate para cima
+						 
+						 -- Passou do Jogador 2 (Ponto para o jogador P1)
+						 elsif (next_b_y + B_SIZE) >= P2_Y_FIXED then 
+							  s1 <= s1 + 1;
+							  b_x <= MEIO_BOLA_X; 
+							  b_y <= MEIO_BOLA_Y;
+							  current_state <= START; -- Espera jogadores estarem prontos para lançar a bola
+						 
+						 -- Movimento no eixo Y normal se não bateu em nada
+						 else
+							  b_y <= next_b_y;
+						 end if;
+					end if;
+				else
+					update_counter <= update_counter + 1;
             end if;
         end if;
     end process;
