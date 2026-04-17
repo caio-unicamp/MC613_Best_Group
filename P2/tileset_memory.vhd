@@ -53,7 +53,7 @@ begin
             
             -- Endereço = (ID * 1024) + (Y_off * 32) + X_off
             -- Limitamos o ID em 2 bits (0 a 3) para garantir que não saia do range 4095
-            addr_int := to_integer(unsigned(tile_id(1 downto 0)) * 1024 + (to_integer(y_offset) * 32) + to_integer(x_offset));
+            addr_int := to_integer(unsigned(tile_id(1 downto 0))) * 1024 + (to_integer(y_offset) * 32) + to_integer(x_offset);
             
             -- Escrita
             if wr = '1' then
