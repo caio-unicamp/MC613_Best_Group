@@ -23,6 +23,7 @@ architecture rtl of background_ram is
         129 to 130 => x"02", 
         140 to 159 => x"01", 
         169 to 170 => x"03",        
+
         others => x"00"
     );
 
