@@ -4,8 +4,8 @@ use ieee.numeric_std.all;
 
 entity hex_display_valor is
     Port (
-        bin_in  : in  std_logic_vector(10 downto 0);   -- milhar|centena|dezena|unidade  
-        HEX_0 : out STD_LOGIC_VECTOR(6 downto 0);     -- Displays para mostrar resultado
+        bin_in  : in  std_logic_vector(10 downto 0);   
+        HEX_0 : out STD_LOGIC_VECTOR(6 downto 0);
         HEX_1 : out STD_LOGIC_VECTOR(6 downto 0);
         HEX_2 : out STD_LOGIC_VECTOR(6 downto 0);
         HEX_3 : out STD_LOGIC_VECTOR(6 downto 0)

@@ -4,8 +4,8 @@ use ieee.numeric_std.all;
 
 entity bin11_to_bcd4 is
   port (
-    bin  : in  std_logic_vector(10 downto 0);  -- 0..2047 (usar 0..1499)
-    bcd  : out std_logic_vector(15 downto 0)   -- milhar|centena|dezena|unidade
+    bin  : in  std_logic_vector(10 downto 0);  -- 0..2047
+    bcd  : out std_logic_vector(15 downto 0)   
   );
 end entity;
 
