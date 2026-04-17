@@ -1,5 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity de1_soc_vga_top is
     port (
@@ -33,8 +34,9 @@ ARCHITECTURE structural of de1_soc_vga_top is
     signal w_p1_x, w_p2_x, w_ball_x : integer range 0 to 639;
     signal w_ball_y : integer range 0 to 479;
     -- Sinais dos scores
-    signal w_score1, w_score2 : unsigned(7 downto 0);
+    signal w_score1, w_score2 : std_logic_vector(7 downto 0);
     signal w_bcd_p1, w_bcd_p2 : std_logic_vector(15 downto 0);
+
     component pll is 
     port (
         refclk      : in std_logic;
@@ -49,7 +51,7 @@ begin
     w_reset_n <= '0' when (SW(0) = '1' and KEY(0) = '0') else '1';
 
     -- instância do PLL gerado pelo quartus
-    pll_inst : entity work.pll 
+    pll_inst : pll 
         port map (
             refclk   => CLOCK_50,
             rst      => not KEY(0),  -- KEY é active-low, PLL costuma ser active-high
@@ -60,7 +62,7 @@ begin
     -- instância da PPU
     ppu_inst : entity work.ppu
         port map (
-            clk          => pixel_clk,
+            clk          => w_pixel_clk,
             pixel_x      => to_integer(unsigned(w_pixel_x)),
             pixel_y      => to_integer(unsigned(w_pixel_y)),
             video_on     => w_video_active,
@@ -68,9 +70,9 @@ begin
             ball_y       => w_ball_y,
             p1_x         => w_p1_x,
             p2_x         => w_p2_x,
-            r            => w_r,
-            g            => w_g,
-            b            => w_b
+            r_out        => w_r,
+            g_out        => w_g,
+            b_out        => w_b
         );
 
     -- instância do controlador de VGA
@@ -101,7 +103,7 @@ begin
         key       => KEY,
         p1_x      => w_p1_x, p2_x => w_p2_x,
         ball_x    => w_ball_x, ball_y => w_ball_y,
-        score1    => w_score1, score2 => w_score2
+        score1    => unsigned(w_score1), score2 => unsigned(w_score2)
     );
 
     -- Instância do conversor bin2bcd , preenchendo os 8 bits do placar com "000" para adequar aos 11 bits do bin11_to_bcd4

@@ -176,7 +176,7 @@ begin
                     s2 <= s2 + 1;
                     b_x <= MEIO_BOLA_X; 
                     b_y <= MEIO_BOLA_Y;
-                    current_state <= IDLE; -- Espera jogadores estarem prontos para lançar a bola
+                    current_state <= START; -- Espera jogadores estarem prontos para lançar a bola
                 
                 -- Colisão com o Jogador 2 (Base)
                 elsif (next_b_y + B_SIZE >= P2_Y_FIXED) and (b_x + B_SIZE >= pos_p2_x) and (b_x <= pos_p2_x + P_WIDTH) then
@@ -188,7 +188,7 @@ begin
                     s1 <= s1 + 1;
                     b_x <= MEIO_BOLA_X; 
                     b_y <= MEIO_BOLA_Y;
-                    current_state <= IDLE; -- Espera jogadores estarem prontos para lançar a bola
+                    current_state <= START; -- Espera jogadores estarem prontos para lançar a bola
                 
                 -- Movimento no eixo Y normal se não bateu em nada
                 else
