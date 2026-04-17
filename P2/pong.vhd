@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity de1_soc_vga_top is
+entity pong is
     port (
         CLOCK_50    : in  STD_LOGIC;
         KEY         : in  STD_LOGIC_VECTOR(3 downto 0);
@@ -18,9 +18,9 @@ entity de1_soc_vga_top is
         -- Saídas dos displays para exibir pontos dos jogadores
         HEX0, HEX1, HEX2, HEX3, HEX4, HEX5 : out STD_LOGIC_VECTOR(6 downto 0)   
     );
-end de1_soc_vga_top;
+end pong;
 
-ARCHITECTURE structural of de1_soc_vga_top is
+ARCHITECTURE structural of pong is
     -- Sinais internos para interconexão
     signal w_pixel_clk   : std_logic;
     signal w_pixel_x     : std_logic_vector(9 downto 0);
@@ -34,7 +34,7 @@ ARCHITECTURE structural of de1_soc_vga_top is
     signal w_p1_x, w_p2_x, w_ball_x : integer range 0 to 639;
     signal w_ball_y : integer range 0 to 479;
     -- Sinais dos scores
-    signal w_score1, w_score2 : std_logic_vector(7 downto 0);
+    signal w_score1, w_score2 : unsigned(7 downto 0);
     signal w_bcd_p1, w_bcd_p2 : std_logic_vector(15 downto 0);
 
     component pll is 
@@ -103,7 +103,7 @@ begin
         key       => KEY,
         p1_x      => w_p1_x, p2_x => w_p2_x,
         ball_x    => w_ball_x, ball_y => w_ball_y,
-        score1    => unsigned(w_score1), score2 => unsigned(w_score2)
+        score1    => w_score1, score2 => w_score2
     );
 
     -- Instância do conversor bin2bcd , preenchendo os 8 bits do placar com "000" para adequar aos 11 bits do bin11_to_bcd4
