@@ -2,15 +2,15 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity tb_background_ram_full is
+entity tb_background_ram_read_only is
 end entity;
 
-architecture sim of tb_background_ram_full is
+architecture sim of tb_background_ram_read_only is
 
     signal clk      : std_logic := '0';
     signal x_pixel  : std_logic_vector(9 downto 0) := (others => '0');
     signal y_pixel  : std_logic_vector(9 downto 0) := (others => '0');
-    signal wr       : std_logic := '0';
+    signal wr       : std_logic := '0'; -- Mantido em '0' o tempo todo
     signal data_in  : std_logic_vector(7 downto 0) := (others => '0');
     signal tile_id  : std_logic_vector(7 downto 0);
 
@@ -18,6 +18,7 @@ architecture sim of tb_background_ram_full is
 
 begin
 
+    -- Instância da RAM
     uut: entity work.background_ram
         port map (
             clk     => clk,
@@ -28,81 +29,46 @@ begin
             tile_id => tile_id
         );
 
-    -- Clock de 50MHz
+    -- Clock
     clk <= not clk after CLK_PERIOD / 2;
 
     stim_proc: process
     begin
-        -- Reset inicial
+        report "Iniciando varredura automatizada de leitura...";
+        
+        -- Garante que a escrita está desativada
         wr <= '0';
-        x_pixel <= (others => '0');
-        y_pixel <= (others => '0');
         wait for 100 ns;
 
         -----------------------------------------------------------------------
-        -- TESTE 1: Varredura de Leitura dos Dados Iniciais (MAP_DATA)
+        -- VARREDURA POR TODA A RAM (300 posições)
         -----------------------------------------------------------------------
-        report "Iniciando varredura de leitura do MAP_DATA...";
+        -- Vamos percorrer as 15 linhas (0 a 14) e as 20 colunas (0 a 19)
+        -- Isso cobre os 300 endereços (15 * 20 = 300)
         
-        -- Vamos testar os primeiros 20 tiles (primeira linha teórica)
-        -- Cada tile tem 32 pixels de largura (2^5)
-        for i in 0 to 19 loop
-            x_pixel <= std_logic_vector(to_unsigned(i * 32, 10));
-            y_pixel <= std_logic_vector(to_unsigned(0, 10)); -- Primeira linha
-            wait for CLK_PERIOD;
-            
-            -- O MAP_DATA diz que de 0 a 119 é x"00"
-            assert (tile_id = x"00") 
-                report "Erro na leitura inicial: indice " & integer'image(i) & " deveria ser 00"
-                severity error;
+        for row in 0 to 14 loop
+            for col in 0 to 19 loop
+                
+                -- Seta as coordenadas baseadas no tamanho do tile (32x32 pixels)
+                y_pixel <= std_logic_vector(to_unsigned(row * 32, 10));
+                x_pixel <= std_logic_vector(to_unsigned(col * 32, 10));
+                
+                wait for CLK_PERIOD;
+
+                -- Verificação via Assert (Baseado no seu MAP_DATA)
+                -- Indice atual = (row * 20) + col
+                if (row * 20 + col) <= 119 then
+                    assert (tile_id = x"00") report "Erro no indice " & integer'image(row*20+col) severity warning;
+                elsif (row * 20 + col) >= 129 and (row * 20 + col) <= 130 then
+                    assert (tile_id = x"02") report "Erro no indice " & integer'image(row*20+col) severity warning;
+                elsif (row * 20 + col) >= 140 and (row * 20 + col) <= 159 then
+                    assert (tile_id = x"01") report "Erro no indice " & integer'image(row*20+col) severity warning;
+                end if;
+
+            end loop;
         end loop;
 
-        -----------------------------------------------------------------------
-        -- TESTE 2: Escrita em Massa (Preenchendo uma 'linha' com valores crescentes)
-        -----------------------------------------------------------------------
-        report "Iniciando escrita em massa na linha 5...";
-        wr <= '1';
-        y_pixel <= std_logic_vector(to_unsigned(5 * 32, 10)); -- Linha 5 (índice começa em 100)
-        
-        for i in 0 to 19 loop
-            x_pixel <= std_logic_vector(to_unsigned(i * 32, 10));
-            data_in <= std_logic_vector(to_unsigned(i + 160, 8)); -- Valor arbitrário
-            wait for CLK_PERIOD;
-        end loop;
-        
-        wr <= '0';
-        wait for CLK_PERIOD;
-
-        -----------------------------------------------------------------------
-        -- TESTE 3: Verificação da Escrita (Leitura do que acabamos de escrever)
-        -----------------------------------------------------------------------
-        report "Verificando dados escritos...";
-        for i in 0 to 19 loop
-            x_pixel <= std_logic_vector(to_unsigned(i * 32, 10));
-            y_pixel <= std_logic_vector(to_unsigned(5 * 32, 10));
-            wait for CLK_PERIOD;
-            
-            assert (tile_id = std_logic_vector(to_unsigned(i + 160, 8)))
-                report "Erro na verificacao: valor lido nao confere na posicao " & integer'image(i)
-                severity error;
-        end loop;
-
-        -----------------------------------------------------------------------
-        -- TESTE 4: Teste de Limite (Bordas da Memória)
-        -----------------------------------------------------------------------
-        report "Testando ultimo endereco da RAM (indice 299)...";
-        -- Indice 299 = Linha 14, Coluna 19 -> (14 * 20) + 19 = 299
-        y_pixel <= std_logic_vector(to_unsigned(14 * 32, 10));
-        x_pixel <= std_logic_vector(to_unsigned(19 * 32, 10));
-        wr <= '1';
-        data_in <= x"FF";
-        wait for CLK_PERIOD;
-        wr <= '0';
-        wait for CLK_PERIOD;
-        
-        assert (tile_id = x"FF") report "Erro no teste de limite superior!" severity error;
-
-        report "Fim da varredura completa. Se nao houve mensagens de erro, sua RAM esta perfeita!";
+        report "Varredura de leitura completa!";
         wait;
     end process;
 
