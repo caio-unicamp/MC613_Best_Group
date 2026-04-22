@@ -16,21 +16,21 @@ architecture sim of ppu_background_tb is
     signal pixel_y      : integer := 0;
     
     -- Posições dos Sprites (Estáticas para o teste)
-    signal ball_x       : integer := 304; -- Posição da bola [cite: 20]
-    signal ball_y       : integer := 224; -- Posição da bola [cite: 21]
-    signal p1_x         : integer := 272; -- Posição do Paddle 1 [cite: 22]
-    signal p2_x         : integer := 272; -- Posição do Paddle 2 [cite: 23]
+    signal ball_x       : integer := 304; -- Posição x da bola 
+    signal ball_y       : integer := 224; -- Posição y da bola 
+    signal p1_x         : integer := 272; -- Posição do Jogador 1 
+    signal p2_x         : integer := 272; -- Posição do Jogador 2 
     
     -- Saídas de Cor RGB de 8 bits
     signal r_out, g_out, b_out : std_logic_vector(7 downto 0);
 
-    constant CLK_PERIOD : time := 10 ns;
+    constant CLK_PERIOD : time := 39.72 ns;
 
 begin
     -- Geração de Clock
     clk <= not clk after CLK_PERIOD/2;
 
-    -- Instância da PPU (Unidade Sob Teste)
+    -- Instância da PPU UUT(Unidade Sob Teste)
     UUT: entity work.ppu
         port map (
             clk      => clk, 
@@ -49,36 +49,48 @@ begin
     -- Processo de Estímulo
     stim_proc: process
     begin
-        -- Aguarda estabilização do sistema
-        wait for 20 ns;
-
-        -- TESTE 1: Pixel no Fundo (Preto - Tile 0) [cite: 37, 107]
+        -- Aguarda estabilização inicial
+        video_on <= '1';
+        wait for CLK_PERIOD * 5;
+        
+        -- TESTE 1: Pixel no Fundo (Preto - Tile 0)
         -- Esperamos R=0, G=0, B=0
         report "--- TESTE 1: BACKGROUND PRETO ---";
         pixel_x <= 10;
         pixel_y <= 10;
-        wait for CLK_PERIOD * 3; -- Aguarda latência (RAM + Tileset + Palette)
+        wait for CLK_PERIOD * 4; -- Aguarda latência da PPU (RAM + Tileset + Palette)
 
-        -- TESTE 2: Pixel na Bola (Cor 2 - Verde) [cite: 83, 51]
-        -- A bola está em (304, 224). Vamos testar o centro dela.
+        -- TESTE 2: Pixel na Bola (Cor 2 - Verde)
+        -- A bola está em (304 - 335, 224 - 255). Vamos testar o centro dela.
         report "--- TESTE 2: PIXEL DA BOLA (VERDE) ---";
-        pixel_x <= 310;
-        pixel_y <= 230;
-        wait for CLK_PERIOD * 3;
+        pixel_x <= 320;
+        pixel_y <= 240;
+        wait for CLK_PERIOD * 4;
 
-        -- TESTE 3: Pixel no Paddle 1 (Cor 1 - Branco) [cite: 82, 50]
-        -- O Paddle 1 está em Y=40. O bitmap tem branco na metade inferior (Y+16 a Y+31) [cite: 82, 93]
+        -- TESTE 3: Pixel no Paddle 1 (Cor 1 - Branco)
+        -- O Paddle 1 está em X = 272 a 367 e Y= 32 a 47. O bitmap tem branco na metade inferior
         report "--- TESTE 3: PIXEL DO PADDLE (BRANCO) ---";
         pixel_x <= 280;
-        pixel_y <= 58; -- Y=40 + 18 pixels (Metade inferior do tile)
-        wait for CLK_PERIOD * 3;
+        pixel_y <= 40; 
+        wait for CLK_PERIOD * 4;
 
-        -- TESTE 4: Pixel na Faixa Branca do Fundo (Tile 1) [cite: 38, 107]
+
+        -- TESTE 4: Blanking (Video_ON = '0')
+        -- Forçando um pixel em cima do Paddle, mas com o monitor fora da área visível
+        report "--- TESTE 4: BLANKING DE VIDEO ---";
+        pixel_x <= 280;
+        pixel_y <= 40; 
+        video_on <= '0';
+        wait for CLK_PERIOD * 4;
+                    
+        video_on <= '1';
+
+        -- TESTE 5: Pixel na Faixa Branca do Fundo (Tile 1)
         -- A faixa branca está na linha 8 da RAM (Y entre 256 e 287) 
-        report "--- TESTE 4: BACKGROUND BRANCO (TILE 1) ---";
+        report "--- TESTE 5: BACKGROUND BRANCO (TILE 1) ---";
         pixel_x <= 63;
-        pixel_y <= 250;
-        wait for CLK_PERIOD * 3;
+        pixel_y <= 260;
+        wait for CLK_PERIOD * 4;
 
         report "Simulação Concluída!";
         wait;
