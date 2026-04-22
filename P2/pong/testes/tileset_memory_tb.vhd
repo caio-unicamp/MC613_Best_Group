@@ -26,7 +26,7 @@ begin
             x_pixel    => x_pixel,
             y_pixel    => y_pixel,
             tile_id    => tile_id,
-            wr         => '0',          -- Forçado em '0' conforme seu pedido
+            wr         => '0',          
             data_in    => (others => '0'),
             pixel_data => pixel_data
         );
@@ -46,9 +46,7 @@ begin
         -- Espera para estabilização
         wait for 100 ns;
 
-        -----------------------------------------------------------
         -- TESTE 1: TILE 0 (Tudo x"00")
-        -----------------------------------------------------------
         report "Analisando Tile 0...";
         tile_id <= x"00";
         -- Testa canto superior esquerdo (0,0)
@@ -57,9 +55,7 @@ begin
         wait for CLK_PERIOD * 2;
         assert (pixel_data = x"00") report "Falha no Tile 0" severity error;
 
-        -----------------------------------------------------------
         -- TESTE 2: TILE 1 (Tudo x"01")
-        -----------------------------------------------------------
         report "Analisando Tile 1...";
         tile_id <= x"01";
         -- Testa um ponto qualquer (15,15)
@@ -68,9 +64,7 @@ begin
         wait for CLK_PERIOD * 2;
         assert (pixel_data = x"01") report "Falha no Tile 1" severity error;
 
-        -----------------------------------------------------------
         -- TESTE 3: TILE 2 (Superior 0, Inferior 1)
-        -----------------------------------------------------------
         report "Analisando Tile 2 (Divisão Horizontal)...";
         tile_id <= x"02";
         
@@ -84,9 +78,7 @@ begin
         wait for CLK_PERIOD * 2;
         assert (pixel_data = x"01") report "Falha no Tile 2 Inferior" severity error;
 
-        -----------------------------------------------------------
         -- TESTE 4: TILE 3 (Superior 1, Inferior 0)
-        -----------------------------------------------------------
         report "Analisando Tile 3 (Divisão Horizontal Inversa)...";
         tile_id <= x"03";
         
@@ -100,9 +92,7 @@ begin
         wait for CLK_PERIOD * 2;
         assert (pixel_data = x"00") report "Falha no Tile 3 Inferior" severity error;
 
-        -----------------------------------------------------------
         -- TESTE 5: VERIFICAÇÃO DE OFFSET (Bordas de 32x32)
-        -----------------------------------------------------------
         report "Testando transição de endereços (X=31 para X=32)...";
         -- Se o pixel_x for 32, o x_offset (5 bits) deve voltar para 0
         -- Isso garante que o tile se repita corretamente na tela
