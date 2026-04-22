@@ -20,7 +20,7 @@ entity pong is
     );
 end pong;
 
-ARCHITECTURE structural of pong   is
+ARCHITECTURE structural of pong is
     -- Sinais internos para interconexão
     signal w_pixel_clk   : std_logic;
     signal w_pixel_x     : std_logic_vector(9 downto 0);
@@ -36,8 +36,8 @@ ARCHITECTURE structural of pong   is
     -- Sinais dos scores
     signal w_score1, w_score2 : unsigned(7 downto 0);
     signal w_bcd_p1, w_bcd_p2 : std_logic_vector(15 downto 0);
-    
-	 component pll is 
+
+    component pll is 
     port (
         refclk      : in std_logic;
         rst         : in std_logic;
