@@ -52,7 +52,7 @@ begin
     -- Processo principal de Estímulos
     stimulus_process: process
     begin
-        -- 1. Estado Inicial e Reset
+        -- Estado Inicial e Reset
         report "Iniciando Simulacao: Aplicando Reset...";
         reset_n <= '0';
         key <= "1111";
@@ -62,34 +62,34 @@ begin
         report "Reset liberado. Jogo no estado START.";
         wait for 1 ms;
 
-        -- 2. Iniciando o Jogo (Transição de START para PLAY)
+        -- Iniciando o Jogo (Transição de START para PLAY)
         -- Simulando o aperto de um botão (Ex: KEY0 do P2) para lançar a bola
         report "Pressionando KEY(0) para iniciar o jogo...";
         key(0) <= '0'; 
         wait for 100 us; -- Tempo de aperto do botão
         key(0) <= '1';   -- Solta o botão
         
-        -- 3. Observando o movimento livre da bola
+        -- Observando o movimento livre da bola
         -- Cada atualização leva ~10ms (250000 ciclos de 40ns).
         -- Esperamos 50ms para ver a bola andar 5 vezes (dx/dy = 3 * 5 = 15 pixels)
         report "Aguardando 50ms para observar o deslocamento da bola...";
         wait for 50 ms;
 
-        -- 4. Movendo a Raquete do Jogador 1 (Topo) para a Esquerda
+        -- Movendo a Raquete do Jogador 1 (Topo) para a Esquerda
         -- Aperta KEY3 (P1L)
         report "Pressionando KEY(3) (P1 Esquerda)...";
         key(3) <= '0';
         wait for 30 ms; -- Segura por 30ms (deve mover 3 vezes = 15 pixels)
         key(3) <= '1';
         
-        -- 5. Movendo a Raquete do Jogador 2 (Base) para a Direita
+        -- Movendo a Raquete do Jogador 2 (Base) para a Direita
         -- Aperta KEY0 (P2R)
         report "Pressionando KEY(0) (P2 Direita)...";
         key(0) <= '0';
         wait for 30 ms; -- Segura por 30ms
         key(0) <= '1';
 
-        -- 6. Aguardando tempo suficiente para uma colisão ou ponto
+        -- Aguardando tempo suficiente para uma colisão ou ponto
         -- A bola precisa percorrer de Y=224 até Y=32 ou Y=448.
         -- A uma velocidade de 3 pixels a cada 10ms, demorará aprox 650ms.
         report "Aguardando 800ms para observar a fisica de bordas/pontuacao...";

@@ -5,7 +5,6 @@ entity color_palette is
     port (
         color_idx : in integer range 0 to 3; -- Índice vindo do Pixel Selector
         video_on  : in std_logic;            -- Sinal de área ativa do VGA Controller
-        -- Saídas separadas de 8 bits conforme solicitado
         r_out     : out std_logic_vector(7 downto 0);
         g_out     : out std_logic_vector(7 downto 0);
         b_out     : out std_logic_vector(7 downto 0)
@@ -16,7 +15,7 @@ architecture Behavioral of color_palette is
 begin
     process(color_idx, video_on)
     begin
-        -- Proteção: Se estiver fora da área visível (Blanking), a cor deve ser PRETA
+        -- Proteção: Se estiver fora da área visível, a cor deve ser PRETA
         if video_on = '0' then
             r_out <= (others => '0');
             g_out <= (others => '0');

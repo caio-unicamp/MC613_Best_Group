@@ -20,8 +20,8 @@ architecture Behavioral of sprite_bitmap is
         512 to 1023 => 0  
     );
     
-    -- Para a bola, podemos fazer o mesmo
-    constant BOLA_BITMAP : rom_type := (others => 2); -- Tudo cor 2 (ex: branco)
+    -- Para a bola é a mesma lógica
+    constant BOLA_BITMAP : rom_type := (others => 2); -- Tudo cor 2
 
 begin
     process(clk)

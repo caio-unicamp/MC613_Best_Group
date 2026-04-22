@@ -14,7 +14,6 @@ entity ppu is
         p1_x        : in  integer;
         p2_x        : in  integer;
         
-        -- CORREÇÃO: Adicionadas saídas individuais conforme solicitado anteriormente
         r_out       : out std_logic_vector(7 downto 0);
         g_out       : out std_logic_vector(7 downto 0);
         b_out       : out std_logic_vector(7 downto 0)
@@ -29,7 +28,6 @@ architecture structural of ppu is
     
     signal s_bg_tile_id       : std_logic_vector(7 downto 0);
     
-    -- CORREÇÃO: Alterado para std_logic_vector para coincidir com tileset_memory
     signal s_bg_color_vec     : std_logic_vector(7 downto 0);
     -- Sinal auxiliar para converter para integer para o seletor
     signal s_bg_color_idx     : integer range 0 to 3;
@@ -38,7 +36,7 @@ architecture structural of ppu is
 
 begin
 
-    -- 1. Camada de Sprites
+    -- Camada de Sprites
     SPRITE_MEM: entity work.sprite_memory
         port map (
             pixel_x   => pixel_x,
@@ -52,7 +50,7 @@ begin
             rom_addr  => s_sprite_rom_addr
         );
 
-    -- 2. Camada de Sprites: Bitmap
+    -- Camada de Sprites: Bitmap
     SPRITE_BTMP: entity work.sprite_bitmap
         port map (
             clk       => clk,
@@ -61,7 +59,7 @@ begin
             color_idx => s_sprite_color_idx
         );
 
-    -- 3. Camada de Background: Mapa de Tiles
+    -- Camada de Background: Mapa de Tiles
     BG_RAM: entity work.background_ram
         port map (
             clk     => clk,
@@ -72,7 +70,7 @@ begin
             tile_id => s_bg_tile_id
         );
 
-    -- 4. Camada de Background: Memória de Tileset
+    -- Camada de Background: Memória de Tileset
     BG_TILESET: entity work.tileset_memory
         port map (
             clk         => clk,
@@ -87,7 +85,7 @@ begin
     -- Conversão explícita de std_logic_vector para integer para o seletor
     s_bg_color_idx <= to_integer(unsigned(s_bg_color_vec(1 downto 0)));
 
-    -- 5. Seletor de Camadas
+    -- Seletor de Camadas
     SELECTOR: entity work.pixel_selector
         port map (
             sprite_on        => s_sprite_on,
@@ -96,7 +94,7 @@ begin
             final_color_idx  => s_final_color_idx
         );
 
-    -- 6. Tradutor de Cores
+    -- Tradutor de Cores
     PALETTE: entity work.color_palette
         port map (
             color_idx => s_final_color_idx,

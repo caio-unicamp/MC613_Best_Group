@@ -20,7 +20,6 @@ architecture rtl of tileset_memory is
     -- 4 tiles de 32x32 = 4096 endereços
     type ram_type is array (0 to 4095) of std_logic_vector(7 downto 0);
 
-    -- Inicialização Hardcoded simulando os 4 tiles do seu script Python
     constant INITIAL_TILES : ram_type := (
         -- Tile 0 (0 até 1023): Tudo "0" (Preto/Transparente)
         0 to 1023 => x"00",

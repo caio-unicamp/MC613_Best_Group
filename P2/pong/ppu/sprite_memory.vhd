@@ -43,7 +43,7 @@ begin
             rel_y := pixel_y - ball_y;
             rom_addr <= (rel_y * TILE_SIZE) + rel_x;
 
-                    -- PADDLE 1 (ID 2)
+        -- PADDLE 1 (ID 2)
         elsif (pixel_x >= p1_x and pixel_x < p1_x + PADDLE_SIZE and
                     pixel_y >= P1_Y and pixel_y < P1_Y + TILE_SIZE) then
                 
@@ -57,7 +57,7 @@ begin
         elsif (pixel_x >= p2_x and pixel_x < p2_x + PADDLE_SIZE and
                     pixel_y >= P2_Y and pixel_y < P2_Y + TILE_SIZE) then
                 
-                pixel_on <= '1'; -- Estava '0' no seu código original 
+                pixel_on <= '1'; 
                 sprite_id <= 2;
                 rel_x := (pixel_x - p2_x) mod TILE_SIZE;
                 rel_y := pixel_y - P2_Y;
