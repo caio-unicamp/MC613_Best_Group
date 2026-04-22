@@ -39,7 +39,7 @@ architecture Behavioral of game_logic is
     constant SCREEN_W        : integer := 640;
     constant SCREEN_H        : integer := 480;
     
-    -- Velocidades dos movimentos em módulo
+    -- Velocidades dos movimentos de cada orientação em módulo
     constant SPEED_PLAYER    : integer := 5;   
     constant SPEED_BALL      : integer := 3;
 
@@ -52,14 +52,14 @@ architecture Behavioral of game_logic is
     constant P1_Y_FIXED : integer := B_SIZE; -- Jogador 1 (topo) tem y fixo em um gap do tamanho da bola 
     constant P2_Y_FIXED : integer := SCREEN_H - B_SIZE - P_HEIGHT - 1;  -- Jogador 2 (base) está a B_SIZE + P_HEIGHT do máximo
 
-	 constant UPDATE_FREQ : integer := 250000; 
+	constant UPDATE_FREQ : integer := 250000; 
     signal update_counter : integer range 0 to UPDATE_FREQ := 0;
 	 
     signal pos_p1_x, pos_p2_x : integer range 0 to 639 := MEIO_PLAYER_X;  
     signal b_x : integer range 0 to 639 := MEIO_BOLA_X; 
     signal b_y : integer range 0 to 479 := MEIO_BOLA_Y;  
     signal dx, dy : integer := 0;   -- Velocidade inicial da bola é 0
-    signal s1, s2 : unsigned(7 downto 0) := (others => '0');    -- Sinais do placar 
+    signal s1, s2 : unsigned(7 downto 0) := (others => '0');	-- Sinais do placar 
     
     -- Sinal interno do estado de jogo 
     type state_type is (START, PLAY);
