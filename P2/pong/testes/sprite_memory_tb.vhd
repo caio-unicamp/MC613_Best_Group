@@ -48,27 +48,24 @@ begin
         report "Teste 1 (Fundo): pixel_on=" & std_logic'image(pixel_on) & " ID=" & integer'image(sprite_id);
         
         -- Teste 2: Varredura sobre a BOLA (ID 1)
-        -- A bola está em (100, 100). Lógica: pixel_x [100, 130) e pixel_y [70, 100)
         pixel_x <= 110;
-        pixel_y <= 90;
+        pixel_y <= 110;
         wait for PERIOD;
         report "Teste 2 (Bola): pixel_on=" & std_logic'image(pixel_on) & " ID=" & integer'image(sprite_id);
         assert (pixel_on = '1' and sprite_id = 1) 
             report "ERRO: Falha na deteccao da Bola" severity error;
 
         -- Teste 3: Varredura sobre o Paddle 1 (ID 2)
-        -- P1_Y fixo em 15. p1_x entrada em 50. Lógica: x [15, 45) e y [20, 50)
-        pixel_x <= 20; 
+        pixel_x <= 60; 
         pixel_y <= 40; 
         wait for PERIOD;
         report "Teste 3 (Paddle 1): pixel_on=" & std_logic'image(pixel_on) & " ID=" & integer'image(sprite_id);
         assert (pixel_on = '1' and sprite_id = 2) 
             report "ERRO: Falha na deteccao do Paddle 1" severity error;
 
-        -- Teste 4: Varredura sobre o Paddle 2 (ID 3)
-        -- P2_Y fixo em 600. p2_x entrada em 50. Lógica: x [600, 630) e y [20, 50)
-        pixel_x <= 610; 
-        pixel_y <= 30; 
+        -- Teste 4: Varredura sobre o Paddle 2 (ID 2)
+        pixel_x <= 60; 
+        pixel_y <= 440; 
         wait for PERIOD;
         report "Teste 4 (Paddle 2): pixel_on=" & std_logic'image(pixel_on) & " ID=" & integer'image(sprite_id);
         assert (pixel_on = '1' and sprite_id = 2) 
@@ -85,8 +82,8 @@ begin
         -- Teste 6: Simulação de Movimento do Paddle 2
         report "Teste 6: Movendo Paddle 2 para p2_x = 200";
         p2_x <= 200;
-        pixel_x <= 610; 
-        pixel_y <= 180; -- Entre 200 e 200-30
+        pixel_x <= 220; 
+        pixel_y <= 440; 
         wait for PERIOD;
         report "Teste 6 (P2 Movido): pixel_on=" & std_logic'image(pixel_on) & " ID=" & integer'image(sprite_id);
         assert (pixel_on = '1' and sprite_id = 2) 

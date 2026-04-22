@@ -66,7 +66,7 @@ begin
         -- Simulando o aperto de um botão (Ex: KEY0 do P2) para lançar a bola
         report "Pressionando KEY(0) para iniciar o jogo...";
         key(0) <= '0'; 
-        wait for 100 us; -- Tempo de aperto do botão
+        wait for 30 ms; -- Tempo de aperto do botão
         key(0) <= '1';   -- Solta o botão
         
         -- 3. Observando o movimento livre da bola
@@ -89,6 +89,18 @@ begin
         wait for 30 ms; -- Segura por 30ms
         key(0) <= '1';
 
+		  wait for 50 ms;
+		  report "Aplicando Reset...";
+        reset_n <= '0';
+		  wait for 100 us;
+        reset_n <= '1';
+		  
+		  wait for 50 ms;
+		  report "Pressionando KEY(0) (P2 Direita)...";
+        key(0) <= '0';
+        wait for 30 ms; -- Segura por 30ms
+        key(0) <= '1';
+		  
         -- 6. Aguardando tempo suficiente para uma colisão ou ponto
         -- A bola precisa percorrer de Y=224 até Y=32 ou Y=448.
         -- A uma velocidade de 3 pixels a cada 10ms, demorará aprox 650ms.
