@@ -10,7 +10,7 @@ entity game_logic is
         
         -- Posições para a PPU, que referenciam o canto superior esquerdo de cada objeto
         -- A orientação é 
-        --0++++++++++++>
+        --0 + + + + + + >
         --+
         --+
         --+

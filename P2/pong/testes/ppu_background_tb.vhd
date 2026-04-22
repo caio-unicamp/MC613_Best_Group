@@ -3,6 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity ppu_background_tb is
+    -- Testbench não possui portas
 end ppu_background_tb;
 
 architecture sim of ppu_background_tb is
