@@ -88,7 +88,7 @@
           <mxGeometry height="30" width="60" x="325" y="510" as="geometry" />
         </mxCell>
         <mxCell id="TfgYTlmOIX2srgp5jC4I-28" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="PRECHARGE" vertex="1">
-          <mxGeometry height="60" width="110" x="460" y="730" as="geometry" />
+          <mxGeometry height="60" width="110" x="475" y="730" as="geometry" />
         </mxCell>
         <mxCell id="TfgYTlmOIX2srgp5jC4I-29" edge="1" parent="1" source="TfgYTlmOIX2srgp5jC4I-22" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;" target="TfgYTlmOIX2srgp5jC4I-28" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
@@ -196,7 +196,7 @@
         <mxCell id="TfgYTlmOIX2srgp5jC4I-50" parent="TfgYTlmOIX2srgp5jC4I-60" style="ellipse;whiteSpace=wrap;html=1;" value="LOAD_MODE_REGISTER" vertex="1">
           <mxGeometry height="90" width="160" x="440" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="TfgYTlmOIX2srgp5jC4I-51" parent="TfgYTlmOIX2srgp5jC4I-60" style="ellipse;whiteSpace=wrap;html=1;" value="ACTIVATE" vertex="1">
+        <mxCell id="TfgYTlmOIX2srgp5jC4I-51" parent="TfgYTlmOIX2srgp5jC4I-60" style="ellipse;whiteSpace=wrap;html=1;" value="ACTIVE" vertex="1">
           <mxGeometry height="80" width="120" x="470" y="170" as="geometry" />
         </mxCell>
         <mxCell id="TfgYTlmOIX2srgp5jC4I-52" edge="1" parent="TfgYTlmOIX2srgp5jC4I-60" source="TfgYTlmOIX2srgp5jC4I-48" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;" target="TfgYTlmOIX2srgp5jC4I-50" value="">
@@ -315,6 +315,9 @@
         </mxCell>
         <mxCell id="M142cZ9mQwnf9Mvi0HJc-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="REFRESH" vertex="1">
           <mxGeometry height="30" width="60" x="1030" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="M142cZ9mQwnf9Mvi0HJc-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="IFACE" vertex="1">
+          <mxGeometry height="370" width="330" x="-280" y="-40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
