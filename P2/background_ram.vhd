@@ -18,16 +18,42 @@ entity background_ram is
     );
 end entity;
 
+
 architecture rtl of background_ram is
     type ram_type is array (0 to 299) of std_logic_vector(7 downto 0);
-
+    
     -- DEFINIÇÃO DO MAPA (Substitui o arquivo TXT)
     -- Cada linha representa o ID de um tile na grade 20x15
     constant MAP_DATA : ram_type := (
-        -- Linhas 0 a 6 (Zeros)
-        0 to 129 => x"00",
+        129 to 130 => x"02"
+        140 to 159 => x"01",
+        169 to 170 => x"03",
         
-        -- Linha 7: Seus dois "02" (Personagem ou item)
+        others => x"00"
+    );
+
+    signal ram : ram_type := MAP_DATA;
+    signal address : integer range 0 to 299;
+
+begin
+    -- Cálculo do endereço combinacional
+    address <= 20 * to_integer(unsigned(y_pixel(9 downto 5))) + to_integer(unsigned(x_pixel(9 downto 5)));
+
+    -- LEITURA ASSÍNCRONA: O tile_id sai imediatamente, alinhando-se com o tileset_memory
+    tile_id <= ram(address);
+
+    -- Escrita permanece síncrona
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if wr = '1' then
+                ram(address) <= data_in;
+            end if;
+        end if;
+    end process;
+end architecture;
+
+
         130 => x"02", 131 => x"02",
         132 to 139 => x"00",
         
