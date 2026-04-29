@@ -12,7 +12,6 @@
 - corretude da sequência de inicialização
 - priorização do estado de refresh em relação aos demais
 	
-	
 # Teste Placa:
 ## dram_iface:
 - valores aparecem corretamente no hex de acordo com os switches
