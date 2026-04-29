@@ -23,3 +23,5 @@
 - gravar valor no mesmo endereço mais de uma vez
 - testar o reset
 - testar mexer no switch e no botão ao mesmo tempo
+- testar refresh
+- escrever linhas e colunas diferentes
