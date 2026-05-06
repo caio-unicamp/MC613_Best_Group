@@ -8,22 +8,22 @@ entity dram_controller is
         clk      : in    std_logic;
         rst      : in    std_logic;
         address  : in    std_logic_vector(25 downto 0);
-        data_in  : in    std_logic_vector(7 downto 0);
-        data_out : out   std_logic_vector(7 downto 0);
+        data_in  : in    std_logic_vector(7 downto 0);  -- Dado a ser lido
+        data_out : out   std_logic_vector(7 downto 0);  -- Dado a ser escrito
         req      : in    std_logic;
         wEn      : in    std_logic;
         ready    : out   std_logic;
 
-        -- Interface Física SDRAM
+        -- Interface Física SDRAM para 64MX8
         dram_addr  : out   std_logic_vector(12 downto 0);
         dram_ba    : out   std_logic_vector(1 downto 0);
         dram_cas_n : out   std_logic;
-        dram_ras_n : out   std_logic;
-        dram_we_n  : out   std_logic;
-        dram_cs_n  : out   std_logic;
-        dram_dq    : inout std_logic_vector(7 downto 0);
         dram_cke   : out   std_logic;
-        dram_dqm   : out   std_logic
+        dram_cs_n  : out   std_logic;
+        dram_dqm   : out   std_logic;    
+        dram_dq    : inout std_logic_vector(7 downto 0)
+        dram_ras_n : out   std_logic;    
+        dram_we_n  : out   std_logic;
     );
 end entity;
 
@@ -103,7 +103,7 @@ begin
             dram_addr <= (others => '0');
 
         elsif rising_edge(clk) then
-            -- Valores Padrão por Ciclo (evita latches)
+            -- Valores Padrão por Ciclo
             sdram_cmd <= CMD_NOP;
             dq_oe <= '0';
             ready <= '0';
