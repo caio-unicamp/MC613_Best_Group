@@ -20,7 +20,6 @@ architecture rtl of tileset_memory is
     -- 4 tiles de 32x32 = 4096 endereços
     type ram_type is array (0 to 4095) of std_logic_vector(7 downto 0);
 
-    -- Inicialização Hardcoded simulando os 4 tiles do seu script Python
     constant INITIAL_TILES : ram_type := (
         -- Tile 0 (0 até 1023): Tudo "0" (Preto/Transparente)
         0 to 1023 => x"00",
@@ -53,7 +52,7 @@ begin
             
             -- Endereço = (ID * 1024) + (Y_off * 32) + X_off
             -- Limitamos o ID em 2 bits (0 a 3) para garantir que não saia do range 4095
-            addr_int := to_integer(unsigned(tile_id(1 downto 0)) * 1024 + (to_integer(y_offset) * 32) + to_integer(x_offset));
+            addr_int := to_integer(unsigned(tile_id(1 downto 0))) * 1024 + (to_integer(y_offset) * 32) + to_integer(x_offset);
             
             -- Escrita
             if wr = '1' then

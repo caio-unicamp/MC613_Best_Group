@@ -54,7 +54,7 @@ begin
     pll_inst : pll 
         port map (
             refclk   => CLOCK_50,
-            rst      => not KEY(0),  -- KEY é active-low, PLL costuma ser active-high
+            rst      => not(w_reset_n),  -- KEY é active-low, PLL costuma ser active-high
             outclk_0 => w_pixel_clk,  -- Saída de 25.175 MHz
             locked => pll_locked
         );

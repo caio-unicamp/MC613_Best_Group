@@ -95,7 +95,7 @@ begin
         wait for 100 ns;	
         reset_n <= '1';
 
-        -- Aguarda o fim de um frame completo (opcional, mas bom para ver o VS)
+        -- Aguarda o fim de um frame completo
         -- Um frame de 800x524 pixels leva aprox. 16.6ms
         wait for 20 ms;
 
