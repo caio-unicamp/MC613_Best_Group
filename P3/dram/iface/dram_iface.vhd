@@ -5,21 +5,30 @@ use ieee.numeric_std.all;
 entity dram_iface is
     port (
         clk      : in  std_logic;
+        rst      : in  std_logic;
         -- Entradas da placa
-        KEY      : in  std_logic_vector(3 downto 0);
         SW       : in  std_logic_vector(9 downto 4);
+        KEY      : in  std_logic_vector(3 downto 0);
         -- Sinal de controle da DRAM
         ready    : in  std_logic;
         
         -- Sinais de saída
-        write_req: out std_logic;
-        read_req : out std_logic
+        HEX0     : out std_logic_vector(6 downto 0);
+        HEX1     : out std_logic_vector(6 downto 0);
+        HEX4     : out std_logic_vector(6 downto 0);
+        HEX5     : out std_logic_vector(6 downto 0);
+
+        address  : out std_logic_vector(25 downto 0);
+        data     : inout std_logic_vector(7 downto 0);
+
+        req      : out std_logic;
+        wEn      : out std_logic
     );
 end dram_iface;
 
 architecture rtl of dram_iface is
 
-    -- Estados simplificados conforme solicitado
+    -- Definição dos estados da FSM
     type state_type is (
         ST_RESET,
         ST_READY,
@@ -31,30 +40,49 @@ architecture rtl of dram_iface is
 
     signal state, next_state : state_type;
     
-    -- Registrador para armazenar o valor anterior de SW[9:4]
-    signal sw_reg : std_logic_vector(9 downto 4);
+    -- Registradores internos
+    signal sw_reg   : std_logic_vector(9 downto 4);
+    signal data_reg : std_logic_vector(7 downto 0);
+
+    -- Sinal auxiliar para o HEX5 (pois a entrada do bin2hex exige 4 bits)
+    signal hex5_in  : std_logic_vector(3 downto 0);
+
+    -- =========================================================================
+    -- Declaração do componente bin2hex
+    -- =========================================================================
+    component bin2hex is
+        port (
+            bin : in  std_logic_vector(3 downto 0);
+            seg : out std_logic_vector(6 downto 0)
+        );
+    end component;
 
 begin
 
+    -- =========================================================================
     -- 1. Processo Sequencial: Atualização de Estado e Registradores
-    process(clk, KEY(0))
+    -- =========================================================================
+    process(clk, rst)
     begin
-        -- Reset assíncrono (KEY[0] pressionado = '0')
-        if KEY(0) = '0' then 
+        if rst = '1' then 
             state <= ST_RESET;
             sw_reg <= (others => '0');
+            data_reg <= (others => '0');
             
         elsif rising_edge(clk) then
             state <= next_state;
             
-            -- O "update" ocorre aqui: quando a leitura termina, salvamos o valor atual das chaves
+            -- Atualiza referência de chaves e o dado lido ao final de uma leitura
             if state = ST_WAIT_READ and ready = '1' then
-                sw_reg <= SW;
+                sw_reg   <= SW;
+                data_reg <= data;
             end if;
         end if;
     end process;
 
+    -- =========================================================================
     -- 2. Processo Combinacional: Lógica de Próximo Estado
+    -- =========================================================================
     process(state, ready, KEY, SW, sw_reg)
     begin
         next_state <= state; 
@@ -66,11 +94,8 @@ begin
                 end if;
 
             when ST_READY =>
-                -- Prioridade para escrita: KEY[3] pressionado AND ready = 1
                 if KEY(3) = '0' and ready = '1' then
                     next_state <= ST_REQ_WRITE;
-                    
-                -- Leitura: Mudança nas chaves AND ready = 1
                 elsif SW /= sw_reg and ready = '1' then
                     next_state <= ST_REQ_READ;
                 end if;
@@ -90,7 +115,6 @@ begin
 
             when ST_WAIT_READ =>
                 if ready = '1' then
-                    -- Retorno direto para READY
                     next_state <= ST_READY;
                 else
                     next_state <= ST_WAIT_READ;
@@ -101,8 +125,27 @@ begin
         end case;
     end process;
 
-    -- 3. Lógica de Saída
-    write_req <= '1' when state = ST_REQ_WRITE else '0';
-    read_req  <= '1' when state = ST_REQ_READ  else '0';
+    -- =========================================================================
+    -- 3. Lógica de Interface com a DRAM e Placa
+    -- =========================================================================
+    req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ) else '0';
+    wEn <= '1' when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else '0';
+
+    address <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
+
+    data <= "00" & SW when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
+
+    -- =========================================================================
+    -- 4. Instanciação dos Displays usando bin2hex
+    -- =========================================================================
+    
+    -- Ajusta os 2 bits mais significativos do endereço para entrar no módulo de 4 bits
+    hex5_in <= "00" & SW(9 downto 8);
+    
+    inst_hex5: bin2hex port map (hex5_in, HEX5);
+    inst_hex4: bin2hex port map (SW(7 downto 4), HEX4);
+
+    inst_hex1: bin2hex port map (data_reg(7 downto 4), HEX1);
+    inst_hex0: bin2hex port map (data_reg(3 downto 0), HEX0);
 
 end rtl;

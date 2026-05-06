@@ -1,34 +1,158 @@
--- Módulo conversor de binário para display de 7 segmentos
--- Entrada: 4 bits (0-15)
--- Saída: 7 bits controlando os segmentos do display
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-entity bin2hex is
+entity dram_iface is
     port (
-        BIN : in  std_logic_vector(3 downto 0);
-        HEX : out std_logic_vector(6 downto 0)
-    );
-end entity bin2hex;
+        clk      : in  std_logic;
+        rst      : in  std_logic;
+        -- Entradas da placa
+        SW       : in  std_logic_vector(9 downto 4);
+        KEY      : in  std_logic_vector(3 downto 0);
+        -- Sinal de controle da DRAM
+        ready    : in  std_logic;
+        
+        -- Sinais de saída
+        HEX0     : out std_logic_vector(6 downto 0);
+        HEX1     : out std_logic_vector(6 downto 0);
+        HEX4     : out std_logic_vector(6 downto 0);
+        HEX5     : out std_logic_vector(6 downto 0);
 
-architecture rtl of bin2hex is
+        address  : out std_logic_vector(25 downto 0);
+        data     : inout std_logic_vector(7 downto 0);
+
+        req      : out std_logic;
+        wEn      : out std_logic
+    );
+end dram_iface;
+
+architecture rtl of dram_iface is
+
+    -- Definição dos estados da FSM
+    type state_type is (
+        ST_RESET,
+        ST_READY,
+        ST_REQ_WRITE,
+        ST_WAIT_WRITE,
+        ST_REQ_READ,
+        ST_WAIT_READ
+    );
+
+    signal state, next_state : state_type;
+    
+    -- Registradores internos
+    signal sw_reg   : std_logic_vector(9 downto 4);
+    signal data_reg : std_logic_vector(7 downto 0);
+
+    -- Sinal auxiliar para o HEX5 (pois a entrada do bin2hex exige 4 bits)
+    signal hex5_in  : std_logic_vector(3 downto 0);
+
+    -- =========================================================================
+    -- Declaração do componente bin2hex
+    -- =========================================================================
+    component bin2hex is
+        port (
+            BIN : in  std_logic_vector(3 downto 0);
+            HEX : out std_logic_vector(6 downto 0)
+        );
+    end component;
+
 begin
-    with BIN select
-        HEX <= "1000000" when "0000", -- 0
-               "1111001" when "0001", -- 1
-               "0100100" when "0010", -- 2
-               "0110000" when "0011", -- 3
-               "0011001" when "0100", -- 4
-               "0010010" when "0101", -- 5
-               "0000010" when "0110", -- 6
-               "1111000" when "0111", -- 7
-               "0000000" when "1000", -- 8
-               "0010000" when "1001", -- 9
-               "0001000" when "1010", -- A
-               "0000011" when "1011", -- B
-               "1000110" when "1100", -- C
-               "0100001" when "1101", -- D
-               "0000110" when "1110", -- E
-               "0001110" when "1111", -- F
-               "1111111" when others; -- Apagado
-end architecture rtl;
+
+    -- =========================================================================
+    -- 1. Processo Sequencial: Atualização de Estado e Registradores
+    -- =========================================================================
+    process(clk, rst)
+    begin
+        if rst = '1' then 
+            state <= ST_RESET;
+            sw_reg <= (others => '0');
+            data_reg <= (others => '0');
+            
+        elsif rising_edge(clk) then
+            state <= next_state;
+            
+            -- Atualiza referência de chaves e o dado lido ao final de uma leitura
+            if state = ST_WAIT_READ and ready = '1' then
+                sw_reg   <= SW;
+                data_reg <= data;
+            end if;
+        end if;
+    end process;
+
+    -- =========================================================================
+    -- 2. Processo Combinacional: Lógica de Próximo Estado
+    -- =========================================================================
+    process(state, ready, KEY, SW, sw_reg)
+    begin
+        next_state <= state; 
+
+        case state is
+            when ST_RESET =>
+                if ready = '1' then
+                    next_state <= ST_READY;
+                end if;
+
+            when ST_READY =>
+                -- Prioridade para escrita: KEY[3] pressionado E ready = 1
+                if KEY(3) = '0' and ready = '1' then
+                    next_state <= ST_REQ_WRITE;
+                    
+                -- Leitura: Mudança no SW E ready = 1
+                elsif SW /= sw_reg and ready = '1' then
+                    next_state <= ST_REQ_READ;
+                end if;
+
+            when ST_REQ_WRITE =>
+                next_state <= ST_WAIT_WRITE;
+
+            when ST_WAIT_WRITE =>
+                if ready = '1' then
+                    next_state <= ST_REQ_READ;
+                else
+                    next_state <= ST_WAIT_WRITE;
+                end if;
+
+            when ST_REQ_READ =>
+                next_state <= ST_WAIT_READ;
+
+            when ST_WAIT_READ =>
+                if ready = '1' then
+                    next_state <= ST_READY;
+                else
+                    next_state <= ST_WAIT_READ;
+                end if;
+
+            when others =>
+                next_state <= ST_RESET;
+        end case;
+    end process;
+
+    -- =========================================================================
+    -- 3. Lógica de Interface com a DRAM e Placa
+    -- =========================================================================
+    req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ) else '0';
+    wEn <= '1' when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else '0';
+
+    -- Mapeamento do endereço: 
+    -- SW[9] -> bit 25; SW[8:6] -> bits 23:21; SW[5:4] -> bits 1:0
+    address <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
+
+    -- Barramento Bidirecional (Tristate Buffer)
+    -- Escreve ("00" & SW) na gravação, alta impedância ('Z') no resto do tempo
+    data <= "00" & SW when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
+
+    -- =========================================================================
+    -- 4. Instanciação dos Displays usando bin2hex
+    -- =========================================================================
+    
+    -- Ajusta os 2 bits mais significativos do endereço para entrar no módulo de 4 bits
+    hex5_in <= "00" & SW(9 downto 8);
+    
+    inst_hex5: bin2hex port map (BIN => hex5_in,        HEX => HEX5);
+    inst_hex4: bin2hex port map (BIN => SW(7 downto 4), HEX => HEX4);
+
+    inst_hex1: bin2hex port map (BIN => data_reg(7 downto 4), HEX => HEX1);
+    inst_hex0: bin2hex port map (BIN => data_reg(3 downto 0), HEX => HEX0);
+
+end rtl;g
