@@ -11,29 +11,27 @@ entity dram_iface is
         -- Sinal de controle da DRAM
         ready    : in  std_logic;
         
-        -- Sinais de saída inferidos (você precisará conectá-los à sua via de dados/avalon)
+        -- Sinais de saída
         write_req: out std_logic;
-        read_req : out std_logic;
-        hex_upd  : out std_logic
+        read_req : out std_logic
     );
 end dram_iface;
 
 architecture rtl of dram_iface is
 
-    -- Definição dos estados exatamente como no diagrama
+    -- Estados simplificados conforme solicitado
     type state_type is (
         ST_RESET,
         ST_READY,
         ST_REQ_WRITE,
         ST_WAIT_WRITE,
         ST_REQ_READ,
-        ST_WAIT_READ,
-        ST_UPDATE_HEX
+        ST_WAIT_READ
     );
 
     signal state, next_state : state_type;
     
-    -- Registrador para armazenar o valor anterior de SW[9:4] ("SW'")
+    -- Registrador para armazenar o valor anterior de SW[9:4]
     signal sw_reg : std_logic_vector(9 downto 4);
 
 begin
@@ -41,7 +39,7 @@ begin
     -- 1. Processo Sequencial: Atualização de Estado e Registradores
     process(clk, KEY(0))
     begin
-        -- Assumindo KEY(0) como Reset ativo em nível baixo ("Pressiona KEY[0]")
+        -- Reset assíncrono (KEY[0] pressionado = '0')
         if KEY(0) = '0' then 
             state <= ST_RESET;
             sw_reg <= (others => '0');
@@ -49,9 +47,8 @@ begin
         elsif rising_edge(clk) then
             state <= next_state;
             
-            -- Atualiza a memória de chaves APÓS uma leitura bem sucedida
-            -- Isso garante que detectaremos a mudança corretamente quando voltarmos ao READY
-            if state = ST_UPDATE_HEX then
+            -- O "update" ocorre aqui: quando a leitura termina, salvamos o valor atual das chaves
+            if state = ST_WAIT_READ and ready = '1' then
                 sw_reg <= SW;
             end if;
         end if;
@@ -60,7 +57,6 @@ begin
     -- 2. Processo Combinacional: Lógica de Próximo Estado
     process(state, ready, KEY, SW, sw_reg)
     begin
-        -- Valor padrão para evitar latches
         next_state <= state; 
 
         case state is
@@ -70,52 +66,43 @@ begin
                 end if;
 
             when ST_READY =>
-                -- Prioridade para escrita: Pressiona KEY[3] AND ready = 1
+                -- Prioridade para escrita: KEY[3] pressionado AND ready = 1
                 if KEY(3) = '0' and ready = '1' then
                     next_state <= ST_REQ_WRITE;
                     
-                -- Leitura: SW[9:4] != SW[9:4]' AND ready = 1
+                -- Leitura: Mudança nas chaves AND ready = 1
                 elsif SW /= sw_reg and ready = '1' then
                     next_state <= ST_REQ_READ;
                 end if;
 
             when ST_REQ_WRITE =>
-                -- Transição incondicional
                 next_state <= ST_WAIT_WRITE;
 
             when ST_WAIT_WRITE =>
                 if ready = '1' then
                     next_state <= ST_REQ_READ;
                 else
-                    next_state <= ST_WAIT_WRITE; -- ready = 0 (mantém o estado)
+                    next_state <= ST_WAIT_WRITE;
                 end if;
 
             when ST_REQ_READ =>
-                -- Transição incondicional
                 next_state <= ST_WAIT_READ;
 
             when ST_WAIT_READ =>
                 if ready = '1' then
-                    next_state <= ST_UPDATE_HEX;
+                    -- Retorno direto para READY
+                    next_state <= ST_READY;
                 else
-                    next_state <= ST_WAIT_READ; -- ready = 0 (mantém o estado)
+                    next_state <= ST_WAIT_READ;
                 end if;
-
-            when ST_UPDATE_HEX =>
-                -- Transição incondicional de volta ao READY
-                next_state <= ST_READY;
 
             when others =>
                 next_state <= ST_RESET;
         end case;
     end process;
 
-    -- 3. Lógica de Saída (Máquina de Moore)
-    -- Esses sinais avisam o restante do seu circuito em qual estado a FSM está.
-    write_req <= '1' when state = ST_REQ_WRITE  else '0';
-    read_req  <= '1' when state = ST_REQ_READ   else '0';
-    
-    -- Esse sinal pode ser usado como um 'enable' para o registrador dos displays HEX
-    hex_upd   <= '1' when state = ST_UPDATE_HEX else '0';
+    -- 3. Lógica de Saída
+    write_req <= '1' when state = ST_REQ_WRITE else '0';
+    read_req  <= '1' when state = ST_REQ_READ  else '0';
 
 end rtl;
