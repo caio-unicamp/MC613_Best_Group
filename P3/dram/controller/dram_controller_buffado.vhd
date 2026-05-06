@@ -31,7 +31,7 @@ architecture rtl of dram_controller is
 
     -- Definição dos Estados da FSM
     type state_type is (
-        S_INIT_WAIT, S_INIT_PRECHARGE, S_INIT_REF_LOOP, S_INIT_LOAD_MODE,
+        S_INIT_WAIT, S_INIT_PRECHARGE, S_WAIT_INIT_RP, S_INIT_REF_LOOP, S_INIT_LOAD_MODE,
         S_IDLE,
         S_ACTIVATE, S_WAIT_RCD,
         S_READ_CMD, S_WAIT_CAS,
@@ -109,7 +109,7 @@ begin
             ready <= '0';
 
             -- Temporizador de Refresh Automático
-            if state /= S_INIT_WAIT then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT
+            if state /= S_INIT_WAIT or state /= S_INIT_PRECHARGE or state /= S_INIT_REF_LOOP or state /= S_INIT_LOAD_MODE or state /=S_WAIT_MRD or state /= S_REFRESH_CMD or state /= S_WAIT_RC or state /= S_WAIT_INIT_RP then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT ou no próprio refresh
                 if refresh_timer > 0 then   -- Decrescente
                     refresh_timer <= refresh_timer - 1;
                 else
@@ -132,7 +132,18 @@ begin
                     dram_addr(10) <= '1'; -- A10 em 1 = Precharge ALL Banks
                     delay_cnt <= T_RP;  -- Espera Trp entre PRECHARGE e AUTO_REFRESH
                     ref_init_cnt <= 8; -- Vai fazer o AUTO_REFRESH 8 vezes
-                    state <= S_WAIT_RP;
+                    state <= S_WAIT_INIT_RP;
+                
+                when S_WAIT_INIT_RP =>
+                    if delay_cnt > 2 then    -- Está em fluxo de INIT
+                        delay_cnt <= delay_cnt - 1;
+                    else
+                        if ref_init_cnt > 0 then
+                            state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
+                        else
+                            state <= S_IDLE; -- Retorna para Idle na operação normal
+                        end if;
+                    end if;
 
                 when S_INIT_REF_LOOP => -- Loop do refresh do INIT
                     sdram_cmd <= CMD_REF;
@@ -237,7 +248,6 @@ begin
                     sdram_cmd <= CMD_PRE;
                     if needs_refresh then   -- BA don't care
                         dram_addr(10) <= '1';   -- Abre todos os bancos para refresh
-                        needs_refresh <= false;
                     else
                         dram_ba <= req_addr(23 downto 22);
                         dram_addr(10) <= '0'; -- Fecha apenas o banco ativo
@@ -246,13 +256,11 @@ begin
                     state <= S_WAIT_RP;
 
                 when S_WAIT_RP =>
-                    if delay_cnt > 2 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        if ref_init_cnt > 0 then
-                            state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
-                        else
-                            state <= S_IDLE; -- Retorna para Idle na operação normal
+                    if needs_refresh then
+                        if delay_cnt > 2 then
+                            delay_cnt <= delay_cnt - 1;
+                        else    -- Segue para o comando de refresh
+                            state <= S_REFRESH_CMD
                         end if;
                     end if;
 
