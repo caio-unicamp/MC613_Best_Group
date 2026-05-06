@@ -90,7 +90,6 @@ begin
     -- LEDR(7 downto 0) mostra o que está trafegando no barramento de dados
     LEDR(9) <= req_sig;
     LEDR(8) <= wEn_sig;
-    LEDR(7 downto 0) <= data_bus;
 
     -- Instanciação do módulo dram_iface
     inst_iface: dram_iface
