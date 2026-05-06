@@ -14,6 +14,7 @@ entity background_ram is
     );
 end entity;
 
+
 architecture rtl of background_ram is
     type ram_type is array (0 to 299) of std_logic_vector(7 downto 0);
 
