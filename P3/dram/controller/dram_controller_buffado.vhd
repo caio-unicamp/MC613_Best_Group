@@ -31,7 +31,7 @@ architecture rtl of dram_controller is
 
     -- Definição dos Estados da FSM
     type state_type is (
-        S_INIT_WAIT, S_INIT_PRECHARGE, S_INIT_REF_LOOP, S_INIT_LOAD_MODE,
+        S_INIT_WAIT, S_INIT_PRECHARGE, S_WAIT_INIT_RP, S_INIT_REF_LOOP, S_INIT_LOAD_MODE,
         S_IDLE,
         S_ACTIVATE, S_WAIT_RCD,
         S_READ_CMD, S_WAIT_CAS,
@@ -44,14 +44,14 @@ architecture rtl of dram_controller is
     -- Constantes de Comandos (CS_n, RAS_n, CAS_n, WE_n)
     constant CMD_NOP : std_logic_vector(3 downto 0) := "0111";
     constant CMD_ACT : std_logic_vector(3 downto 0) := "0011";
-    constant CMD_RD  : std_logic_vector(3 downto 0) := "0101";
-    constant CMD_WR  : std_logic_vector(3 downto 0) := "0100";
+    constant CMD_RD  : std_logic_vector(3 downto 0) := "0101";  -- read
+    constant CMD_WR  : std_logic_vector(3 downto 0) := "0100";  -- write
     constant CMD_PRE : std_logic_vector(3 downto 0) := "0010";
     constant CMD_REF : std_logic_vector(3 downto 0) := "0001";
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
-    -- Constantes de Temporização (Baseadas em 143 MHz -> T = ~7ns)
-    constant T_200US  : integer := 28600; -- Ciclos para 200us
+    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns)
+    constant T_200US  : integer := 28600; -- Espera para iniciar o INIT após RESET 
     constant T_RCD    : integer := 2;     -- tRCD = 15ns (~2 a 3 ciclos)
     constant T_MRD    : integer := 2;     -- tMRD = 14ns (~2 a 3 ciclos)
     constant T_CAS    : integer := 3;     -- CL = 3 ciclos
@@ -63,9 +63,9 @@ architecture rtl of dram_controller is
     -- Sinais Internos
     signal sdram_cmd     : std_logic_vector(3 downto 0);
     signal delay_cnt     : integer range 0 to 32767;
-    signal ref_init_cnt  : integer range 0 to 15;   -- Contador de loops de refresh no INIT
-    signal refresh_timer : integer range 0 to 2047;
-    signal needs_refresh : boolean;
+    signal ref_init_cnt  : integer range 0 to 8;   -- Contador de loops de refresh no INIT
+    signal refresh_timer : integer range 0 to 1200; -- Contador para o refresh periódico
+    signal needs_refresh : boolean; -- Flag para verificar se deve entrar em refresh
 
     -- Registradores de requisição
     signal req_addr : std_logic_vector(25 downto 0);
@@ -77,7 +77,6 @@ architecture rtl of dram_controller is
     signal dq_oe  : std_logic; -- Output Enable
 
 begin
-
     -- Mapeamento dos pinos de comando
     dram_cs_n  <= sdram_cmd(3);
     dram_ras_n <= sdram_cmd(2);
@@ -85,14 +84,14 @@ begin
     dram_we_n  <= sdram_cmd(0);
     
     dram_cke <= '1'; -- Clock Enable sempre ativo
-    dram_dqm <= '0'; -- Não estamos usando máscara de dados neste projeto
+    dram_dqm <= '0'; 
 
     -- Lógica do buffer Tri-state para a porta INOUT
     dram_dq <= dq_out when dq_oe = '1' else (others => 'Z');
 
     process(clk, rst)
     begin
-        if rst = '0' then -- Assumindo reset ativo em baixo (KEY(0))
+        if rst = '0' then -- Reset ativo em baixo (KEY(0))
             state <= S_INIT_WAIT;
             delay_cnt <= T_200US;
             ready <= '0';
@@ -110,7 +109,7 @@ begin
             ready <= '0';
 
             -- Temporizador de Refresh Automático
-            if state /= S_INIT_WAIT then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT
+            if state /= S_INIT_WAIT or state /= S_INIT_PRECHARGE or state /= S_INIT_REF_LOOP or state /= S_INIT_LOAD_MODE or state /=S_WAIT_MRD or state /= S_REFRESH_CMD or state /= S_WAIT_RC or state /= S_WAIT_INIT_RP then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT ou no próprio refresh
                 if refresh_timer > 0 then   -- Decrescente
                     refresh_timer <= refresh_timer - 1;
                 else
@@ -122,7 +121,7 @@ begin
             case state is
                 -- INIT
                 when S_INIT_WAIT =>
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_INIT_PRECHARGE;
@@ -133,7 +132,18 @@ begin
                     dram_addr(10) <= '1'; -- A10 em 1 = Precharge ALL Banks
                     delay_cnt <= T_RP;  -- Espera Trp entre PRECHARGE e AUTO_REFRESH
                     ref_init_cnt <= 8; -- Vai fazer o AUTO_REFRESH 8 vezes
-                    state <= S_WAIT_RP;
+                    state <= S_WAIT_INIT_RP;
+                
+                when S_WAIT_INIT_RP =>
+                    if delay_cnt > 2 then    -- Está em fluxo de INIT
+                        delay_cnt <= delay_cnt - 1;
+                    else
+                        if ref_init_cnt > 0 then
+                            state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
+                        else
+                            state <= S_IDLE; -- Retorna para Idle na operação normal
+                        end if;
+                    end if;
 
                 when S_INIT_REF_LOOP => -- Loop do refresh do INIT
                     sdram_cmd <= CMD_REF;
@@ -151,7 +161,7 @@ begin
                     state <= S_WAIT_MRD;
                 
                 when S_WAIT_MRD =>
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_IDLE;
@@ -161,10 +171,9 @@ begin
                 when S_IDLE =>
                     ready <= '1'; -- Sinaliza ao dram_iface que está livre
 
-                    if needs_refresh then
+                    if needs_refresh then   -- Interrompe outros fluxos caso precise dar o refresh
                         ready <= '0';
-                        needs_refresh <= false;
-                        state <= S_REFRESH_CMD;
+                        state <= S_PRECHARGE;   -- O primeiro passo do refresh periódico é dar um precharge
                     elsif req = '1' then
                         ready <= '0';
                         req_addr <= address;
@@ -173,9 +182,7 @@ begin
                         state <= S_ACTIVATE;
                     end if;
 
-                -- ==========================================
-                -- FLUXOS DE ACESSO (ACTIVATE COMPARTILHADO)
-                -- ==========================================
+                -- ACTIVATE
                 when S_ACTIVATE =>
                     sdram_cmd <= CMD_ACT;
                     -- Endereçamento hierárquico
@@ -185,7 +192,7 @@ begin
                     state <= S_WAIT_RCD;
 
                 when S_WAIT_RCD =>
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if req_is_w = '1' then
@@ -195,9 +202,7 @@ begin
                         end if;
                     end if;
 
-                -- ==========================================
-                -- FLUXO DE LEITURA (READ)
-                -- ==========================================
+                -- READ
                 when S_READ_CMD =>
                     sdram_cmd <= CMD_RD;
                     dram_ba <= req_addr(23 downto 22);
@@ -207,7 +212,7 @@ begin
                     state <= S_WAIT_CAS;
 
                 when S_WAIT_CAS =>
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         -- Captura o dado do barramento no momento exato (CL = 3)
@@ -215,9 +220,7 @@ begin
                         state <= S_PRECHARGE;
                     end if;
 
-                -- ==========================================
-                -- FLUXO DE ESCRITA (WRITE)
-                -- ==========================================
+                -- WRITE
                 when S_WRITE_CMD =>
                     sdram_cmd <= CMD_WR;
                     dram_ba <= req_addr(23 downto 22);
@@ -234,43 +237,41 @@ begin
                     -- Mantém o dado sendo dirigido até o fim da recuperação
                     dq_out <= req_data;
                     dq_oe  <= '1';
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_PRECHARGE;
                     end if;
 
-                -- ==========================================
-                -- PRECHARGE (COMPARTILHADO)
-                -- ==========================================
+                -- PRECHARGE
                 when S_PRECHARGE =>
                     sdram_cmd <= CMD_PRE;
-                    dram_ba <= req_addr(23 downto 22);
-                    dram_addr(10) <= '0'; -- Fecha apenas o banco ativo
+                    if needs_refresh then   -- BA don't care
+                        dram_addr(10) <= '1';   -- Abre todos os bancos para refresh
+                    else
+                        dram_ba <= req_addr(23 downto 22);
+                        dram_addr(10) <= '0'; -- Fecha apenas o banco ativo
+                    end if;
                     delay_cnt <= T_RP;
                     state <= S_WAIT_RP;
 
                 when S_WAIT_RP =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        if ref_init_cnt > 0 then
-                            state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
-                        else
-                            state <= S_IDLE; -- Retorna para Idle na operação normal
+                    if needs_refresh then
+                        if delay_cnt > 2 then
+                            delay_cnt <= delay_cnt - 1;
+                        else    -- Segue para o comando de refresh
+                            state <= S_REFRESH_CMD
                         end if;
                     end if;
 
-                -- ==========================================
-                -- REFRESH PERIÓDICO (CBR / AUTO-REFRESH)
-                -- ==========================================
+                -- REFRESH PERIÓDICO
                 when S_REFRESH_CMD =>
                     sdram_cmd <= CMD_REF;
                     delay_cnt <= T_RC;
                     state <= S_WAIT_RC;
 
                 when S_WAIT_RC =>
-                    if delay_cnt > 0 then
+                    if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if ref_init_cnt > 0 then
