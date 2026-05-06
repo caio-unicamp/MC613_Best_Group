@@ -52,8 +52,8 @@ architecture rtl of dram_iface is
     -- =========================================================================
     component bin2hex is
         port (
-            bin : in  std_logic_vector(3 downto 0);
-            seg : out std_logic_vector(6 downto 0)
+            BIN : in  std_logic_vector(3 downto 0);
+            HEX : out std_logic_vector(6 downto 0)
         );
     end component;
 
@@ -94,8 +94,11 @@ begin
                 end if;
 
             when ST_READY =>
+                -- Prioridade para escrita: KEY[3] pressionado E ready = 1
                 if KEY(3) = '0' and ready = '1' then
                     next_state <= ST_REQ_WRITE;
+                    
+                -- Leitura: Mudança no SW E ready = 1
                 elsif SW /= sw_reg and ready = '1' then
                     next_state <= ST_REQ_READ;
                 end if;
@@ -131,8 +134,12 @@ begin
     req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ) else '0';
     wEn <= '1' when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else '0';
 
+    -- Mapeamento do endereço: 
+    -- SW[9] -> bit 25; SW[8:6] -> bits 23:21; SW[5:4] -> bits 1:0
     address <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
 
+    -- Barramento Bidirecional (Tristate Buffer)
+    -- Escreve ("00" & SW) na gravação, alta impedância ('Z') no resto do tempo
     data <= "00" & SW when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
 
     -- =========================================================================
@@ -142,10 +149,10 @@ begin
     -- Ajusta os 2 bits mais significativos do endereço para entrar no módulo de 4 bits
     hex5_in <= "00" & SW(9 downto 8);
     
-    inst_hex5: bin2hex port map (hex5_in, HEX5);
-    inst_hex4: bin2hex port map (SW(7 downto 4), HEX4);
+    inst_hex5: bin2hex port map (BIN => hex5_in,        HEX => HEX5);
+    inst_hex4: bin2hex port map (BIN => SW(7 downto 4), HEX => HEX4);
 
-    inst_hex1: bin2hex port map (data_reg(7 downto 4), HEX1);
-    inst_hex0: bin2hex port map (data_reg(3 downto 0), HEX0);
+    inst_hex1: bin2hex port map (BIN => data_reg(7 downto 4), HEX => HEX1);
+    inst_hex0: bin2hex port map (BIN => data_reg(3 downto 0), HEX => HEX0);
 
 end rtl;
