@@ -4,9 +4,9 @@ use ieee.numeric_std.all;
 
 entity dram_controller is
     port (
-        -- Interface com dram_iface
         clk      : in    std_logic;
         rst      : in    std_logic;
+        -- Interface com dram_iface
         address  : in    std_logic_vector(25 downto 0);
         data_in  : in    std_logic_vector(7 downto 0);  -- Dado a ser lido
         data_out : out   std_logic_vector(7 downto 0);  -- Dado a ser escrito
