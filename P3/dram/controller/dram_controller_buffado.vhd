@@ -37,7 +37,7 @@ architecture rtl of dram_controller is
         S_READ_CMD, S_WAIT_CAS,
         S_WRITE_CMD, S_WAIT_DPL,
         S_PRECHARGE, S_WAIT_RP,
-        S_REFRESH_CMD, S_WAIT_RFC
+        S_REFRESH_CMD, S_WAIT_RC
     );
     signal state : state_type;
 
@@ -53,16 +53,17 @@ architecture rtl of dram_controller is
     -- Constantes de Temporização (Baseadas em 143 MHz -> T = ~7ns)
     constant T_200US  : integer := 28600; -- Ciclos para 200us
     constant T_RCD    : integer := 2;     -- tRCD = 15ns (~2 a 3 ciclos)
+    constant T_MRD    : integer := 2;     -- tMRD = 14ns (~2 a 3 ciclos)
     constant T_CAS    : integer := 3;     -- CL = 3 ciclos
     constant T_DPL    : integer := 2;     -- tWR/tDPL após escrita
-    constant T_RP     : integer := 2;     -- tRP = 15ns
-    constant T_RFC    : integer := 9;     -- tRC = 60ns (~9 ciclos)
-    constant T_REFI   : integer := 1100;  -- Intervalo de refresh (~7.8us)
+    constant T_RP     : integer := 2;     -- tRP = 15ns (~2 a 3 ciclos)
+    constant T_RC    : integer := 9;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
+    constant T_REFI   : integer := 1100;  -- Intervalo de refresh (~7.8us = 1114 ciclos de clock/o maior tempo entre READ e WRITE são 7 ciclos de clock, tirando o dobro fica 1100 ciclos para não ter perigo de interromper um outro fluxo)
 
     -- Sinais Internos
     signal sdram_cmd     : std_logic_vector(3 downto 0);
     signal delay_cnt     : integer range 0 to 32767;
-    signal ref_init_cnt  : integer range 0 to 15;
+    signal ref_init_cnt  : integer range 0 to 15;   -- Contador de loops de refresh no INIT
     signal refresh_timer : integer range 0 to 2047;
     signal needs_refresh : boolean;
 
@@ -109,8 +110,8 @@ begin
             ready <= '0';
 
             -- Temporizador de Refresh Automático
-            if state /= S_INIT_WAIT then
-                if refresh_timer > 0 then
+            if state /= S_INIT_WAIT then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT
+                if refresh_timer > 0 then   -- Decrescente
                     refresh_timer <= refresh_timer - 1;
                 else
                     needs_refresh <= true;
@@ -119,9 +120,7 @@ begin
             end if;
 
             case state is
-                -- ==========================================
-                -- FLUXO DE INICIALIZAÇÃO (INIT)
-                -- ==========================================
+                -- INIT
                 when S_INIT_WAIT =>
                     if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
@@ -132,27 +131,33 @@ begin
                 when S_INIT_PRECHARGE =>
                     sdram_cmd <= CMD_PRE;
                     dram_addr(10) <= '1'; -- A10 em 1 = Precharge ALL Banks
-                    delay_cnt <= T_RP;
-                    ref_init_cnt <= 8; -- O Datasheet pede no mínimo 2 ciclos de Auto Refresh, 8 é o padrão seguro
+                    delay_cnt <= T_RP;  -- Espera Trp entre PRECHARGE e AUTO_REFRESH
+                    ref_init_cnt <= 8; -- Vai fazer o AUTO_REFRESH 8 vezes
                     state <= S_WAIT_RP;
 
-                when S_INIT_REF_LOOP =>
+                when S_INIT_REF_LOOP => -- Loop do refresh do INIT
                     sdram_cmd <= CMD_REF;
-                    delay_cnt <= T_RFC;
+                    delay_cnt <= T_RC;
                     ref_init_cnt <= ref_init_cnt - 1;
-                    state <= S_WAIT_RFC;
+                    state <= S_WAIT_RC;
 
                 when S_INIT_LOAD_MODE =>
                     sdram_cmd <= CMD_MRS;
-                    -- Configuração Mode Register: Burst=1, Sequential, CL=3
+                    -- Configuração Mode Register: Burst_length=1, Burst_type=Sequential, CL=3, Operating_mode =Standard, Write_Burst_Mode=Single Location Access
+                    -- Seguindo nosso querido datasheet, garantindo compatibilidade com dispositivos futuros deve-se ter BA1, BA0, A12, A11,A10 = 0
                     dram_ba <= "00";
-                    dram_addr <= "000" & "0" & "00" & "011" & "0" & "000";
-                    delay_cnt <= T_RCD; -- Espera genérica pós-LMR
-                    state <= S_WAIT_RCD;
+                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";
+                    delay_cnt <= T_MRD; 
+                    state <= S_WAIT_MRD;
+                
+                when S_WAIT_MRD =>
+                    if delay_cnt > 0 then
+                        delay_cnt <= delay_cnt - 1;
+                    else
+                        state <= S_IDLE;
+                    end if;
 
-                -- ==========================================
-                -- ESTADO OCIOSO (READY)
-                -- ==========================================
+                -- READY
                 when S_IDLE =>
                     ready <= '1'; -- Sinaliza ao dram_iface que está livre
 
@@ -261,17 +266,17 @@ begin
                 -- ==========================================
                 when S_REFRESH_CMD =>
                     sdram_cmd <= CMD_REF;
-                    delay_cnt <= T_RFC;
-                    state <= S_WAIT_RFC;
+                    delay_cnt <= T_RC;
+                    state <= S_WAIT_RC;
 
-                when S_WAIT_RFC =>
+                when S_WAIT_RC =>
                     if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if ref_init_cnt > 0 then
-                            state <= S_INIT_LOAD_MODE; -- Segue o fluxo de Init
+                            state <= S_INIT_REF_LOOP; -- Volta no loop até acabar a qtd correta
                         else
-                            state <= S_IDLE;
+                            state <= S_INIT_LOAD_MODE;  -- Quando acabar os loops segue para o Load Mode Register
                         end if;
                     end if;
 
