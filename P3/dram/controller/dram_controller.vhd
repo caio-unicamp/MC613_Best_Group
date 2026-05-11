@@ -184,9 +184,9 @@ begin
                     if delay_cnt > 2 then
                         delay_cnt <= delay_cnt - 1;
                     else
-                        if req_is_w = '1' then
+                        if req_is_w = '1' then  -- Caso flag de write segue o fluxo de escrita
                             state <= S_WRITE_CMD;
-                        else
+                        else    -- Caso contrário segue o fluxo de leitura
                             state <= S_READ_CMD;
                         end if;
                     end if;
