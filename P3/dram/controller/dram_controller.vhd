@@ -21,9 +21,9 @@ entity dram_controller is
         dram_cke   : out   std_logic;
         dram_cs_n  : out   std_logic;
         dram_dqm   : out   std_logic;    
-        dram_dq    : inout std_logic_vector(7 downto 0)
+        dram_dq    : inout std_logic_vector(7 downto 0);
         dram_ras_n : out   std_logic;    
-        dram_we_n  : out   std_logic;
+        dram_we_n  : out   std_logic
     );
 end entity;
 
@@ -175,8 +175,8 @@ begin
                 when S_ACTIVATE =>
                     sdram_cmd <= CMD_ACT;
                     -- Endereçamento hierárquico
-                    dram_ba   <= req_addr(23 downto 22); -- Banco
-                    dram_addr <= req_addr(21 downto 9);  -- Linha (Row)
+                    dram_ba   <= req_addr(12 downto 11); -- Banco
+                    dram_addr <= req_addr(25 downto 13);  -- Linha (Row)
                     delay_cnt <= T_RCD;
                     state <= S_WAIT_RCD;
 
@@ -194,9 +194,11 @@ begin
                 -- READ
                 when S_READ_CMD =>
                     sdram_cmd <= CMD_RD;
-                    dram_ba <= req_addr(23 downto 22);
+                    dram_ba <= req_addr(12 downto 11);  -- Mantém o banco
+                    -- dram_addr tem 13 pinos. A12 e A11 ficam em 0.
                     -- A10 = '0' para desativar Auto-Precharge automático
-                    dram_addr <= "0000" & '0' & req_addr(8 downto 1) & req_addr(0); 
+                    -- A9 até A0 recebem os 10 bits da coluna.
+                    dram_addr <= "00" & '0' & req_addr(10 downto 1); 
                     delay_cnt <= T_CAS - 1;
                     state <= S_WAIT_CAS;
 
@@ -212,8 +214,11 @@ begin
                 -- WRITE
                 when S_WRITE_CMD =>
                     sdram_cmd <= CMD_WR;
-                    dram_ba <= req_addr(23 downto 22);
-                    dram_addr <= "0000" & '0' & req_addr(8 downto 1) & req_addr(0);
+                    dram_ba <= req_addr(12 downto 11);  -- Manté o banco
+                    -- dram_addr tem 13 pinos. A12 e A11 ficam em 0.
+                    -- A10 = '0' para desativar Auto-Precharge automático
+                    -- A9 até A0 recebem os 10 bits da coluna.
+                    dram_addr <= "00" & '0' & req_addr(10 downto 1);
                     
                     -- Fornece o dado e habilita a saída Tri-state
                     dq_out <= req_data;
@@ -249,11 +254,11 @@ begin
                         delay_cnt <= delay_cnt - 1;
                     else
                         if needs_refresh then   -- Finaliza Precharge do refresh
-                            state <= S_REFRESH_CMD
+                            state <= S_REFRESH_CMD;
                         elsif ref_init_cnt > 0 then
                             state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
                         else    -- Precharge do READ/WRITE
-                            state <= S_IDLE
+                            state <= S_IDLE;
                         end if;
                     end if;
 
