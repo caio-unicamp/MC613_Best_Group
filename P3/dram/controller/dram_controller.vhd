@@ -162,7 +162,7 @@ begin
 
                     if needs_refresh then   -- Interrompe outros fluxos caso precise dar o refresh
                         ready <= '0';
-                        state <= S_PRECHARGE;   -- O primeiro passo do refresh periódico é dar um precharge
+                        state <= S_PRECHARGE;   -- O primeiro passo do refresh periódico: dar um precharge
                     elsif req = '1' then
                         ready <= '0';
                         req_addr <= address;
