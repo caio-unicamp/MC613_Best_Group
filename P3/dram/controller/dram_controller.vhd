@@ -51,13 +51,13 @@ architecture rtl of dram_controller is
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
     -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns) tirando 2 pra margem de erro de conferências
-    constant T_200US  : integer := 28600; -- Espera para iniciar o INIT após RESET 
-    constant T_RCD    : integer := 2;     -- tRCD = 15ns (~2 a 3 ciclos)
-    constant T_MRD    : integer := 2;     -- tMRD = 14ns (~2 a 3 ciclos)
-    constant T_CAS    : integer := 3;     -- CL = 3 ciclos
-    constant T_DPL    : integer := 2;     -- tWR/tDPL após escrita
-    constant T_RP     : integer := 2;     -- tRP = 15ns (~2 a 3 ciclos)
-    constant T_RC    : integer := 9;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
+    constant T_200US  : integer := 28600 - 2; -- Espera para iniciar o INIT após RESET 
+    constant T_RCD    : integer := 2 - 2;     -- tRCD = 15ns (~2 a 3 ciclos)
+    constant T_MRD    : integer := 2 - 2;     -- tMRD = 14ns (~2 a 3 ciclos)
+    constant T_CAS    : integer := 3 - 2;     -- CL = 3 ciclos
+    constant T_DPL    : integer := 2 - 2;     -- tWR/tDPL após escrita
+    constant T_RP     : integer := 2 - 2;     -- tRP = 15ns (~2 a 3 ciclos)
+    constant T_RC    : integer := 9 - 2;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
     constant T_REFI   : integer := 1100;  -- Intervalo de refresh (~7.8us = 1114 ciclos de clock/o maior tempo entre READ e WRITE são 7 ciclos de clock, tirando o dobro fica 1100 ciclos para não ter perigo de interromper um outro fluxo)
 
     -- Sinais Internos
