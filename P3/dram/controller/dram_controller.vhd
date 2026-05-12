@@ -68,7 +68,7 @@ architecture rtl of dram_controller is
     signal needs_refresh : boolean; -- Flag para verificar se deve entrar em refresh
 
     -- Registradores de requisição
-    signal req_addr : std_logic_vector(25 downto 0);
+    signal req_addr : std_logic_vector(25 downto 0);    -- Organizado como BA = 25 downto 24, 
     signal req_data : std_logic_vector(7 downto 0);
     signal req_is_w : std_logic;
 
@@ -175,8 +175,8 @@ begin
                 when S_ACTIVATE =>
                     sdram_cmd <= CMD_ACT;
                     -- Endereçamento hierárquico
-                    dram_ba   <= req_addr(12 downto 11); -- Banco
-                    dram_addr <= req_addr(25 downto 13);  -- Linha (Row)
+                    dram_ba   <= req_addr(25 downto 24); -- Banco
+                    dram_addr <= req_addr(23 downto 11);  -- Linha (Row)
                     delay_cnt <= T_RCD;
                     state <= S_WAIT_RCD;
 
@@ -194,7 +194,7 @@ begin
                 -- READ
                 when S_READ_CMD =>
                     sdram_cmd <= CMD_RD;
-                    dram_ba <= req_addr(12 downto 11);  -- Mantém o banco
+                    dram_ba <= req_addr(25 downto 24);  -- Mantém o banco
                     -- dram_addr tem 13 pinos. A12 e A11 ficam em 0.
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
@@ -214,7 +214,7 @@ begin
                 -- WRITE
                 when S_WRITE_CMD =>
                     sdram_cmd <= CMD_WR;
-                    dram_ba <= req_addr(12 downto 11);  -- Manté o banco
+                    dram_ba <= req_addr(25 downto 24);  -- Manté o banco
                     -- dram_addr tem 13 pinos. A12 e A11 ficam em 0.
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
