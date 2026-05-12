@@ -38,7 +38,7 @@ architecture rtl of top_level is
     -- =========================================================================
     
     -- Componente do PLL (Você deve gerar este IP no Quartus)
-    component pll_143 is
+    component pll is
         port (
             refclk   : in  std_logic; -- Entrada: 50 MHz
             rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
@@ -118,7 +118,7 @@ begin
     
     -- A maioria dos IPs de PLL da Altera espera um reset ativo em ALTO.
     -- Como KEY(0) é ativo em BAIXO, invertemos o sinal para resetar o PLL.
-    inst_pll: pll_143
+    inst_pll: pll
         port map (
             refclk   => CLOCK_50,
             rst      => not KEY(0),
