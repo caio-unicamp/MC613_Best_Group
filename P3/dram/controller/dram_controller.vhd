@@ -68,7 +68,7 @@ architecture rtl of dram_controller is
     signal needs_refresh : boolean; -- Flag para verificar se deve entrar em refresh
 
     -- Registradores de requisição
-    signal req_addr : std_logic_vector(25 downto 0);    -- Organizado como BA = 25 downto 24, 
+    signal req_addr : std_logic_vector(25 downto 0);    -- Organizado como BA = 25 downto 24, ROW = 23 downto 11, COL = 10 downto 1
     signal req_data : std_logic_vector(7 downto 0);
     signal req_is_w : std_logic;
 
@@ -243,7 +243,7 @@ begin
                     if needs_refresh then   -- BA don't care (Precharge do refresh)
                         dram_addr(10) <= '1';   -- Abre todos os bancos para refresh
                     else    -- Precharge do READ/WRITE
-                        dram_ba <= req_addr(23 downto 22);
+                        dram_ba <= req_addr(25 downto 24);
                         dram_addr(10) <= '0'; -- Fecha apenas o banco ativo
                     end if;
                     delay_cnt <= T_RP;
