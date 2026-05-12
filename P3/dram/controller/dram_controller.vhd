@@ -109,11 +109,11 @@ begin
             ready <= '0';
             
             -- Temporizador de Refresh Automático
-            if refresh_timer > 0 then   -- Decrescente
-                refresh_timer <= refresh_timer - 1;
-            else
-                refresh_timer <= T_REFI;
-                if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
+            if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
+                if refresh_timer > 0 then   -- Decrescente
+                    refresh_timer <= refresh_timer - 1;
+                else
+                    refresh_timer <= T_REFI;
                     needs_refresh <= true;
                 end if;
             end if;
