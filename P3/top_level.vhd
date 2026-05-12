@@ -4,9 +4,9 @@ use ieee.numeric_std.all;
 
 entity top_level is
     port (
-        CLOCK_50 : in  std_logic;                    -- Clock principal da placa (50 MHz)
-        KEY      : in  std_logic_vector(3 downto 0); -- Botões
-        SW       : in  std_logic_vector(9 downto 0); -- Chaves
+        CLOCK_50 : in  std_logic;                    
+        KEY      : in  std_logic_vector(3 downto 0); 
+        SW       : in  std_logic_vector(9 downto 0); 
         
         -- Displays e LEDs
         HEX0     : out std_logic_vector(6 downto 0);
@@ -15,10 +15,8 @@ entity top_level is
         HEX5     : out std_logic_vector(6 downto 0);
         LEDR     : out std_logic_vector(9 downto 8);
         
-        -- =========================================================
-        -- Pinos Físicos da SDRAM (Conectam-se ao chip na placa)
-        -- =========================================================
-        DRAM_CLK   : out   std_logic; -- Clock enviado para a memória
+        -- Pinos Físicos da SDRAM
+        DRAM_CLK   : out   std_logic; 
         DRAM_ADDR  : out   std_logic_vector(12 downto 0);
         DRAM_BA    : out   std_logic_vector(1 downto 0);
         DRAM_CAS_N : out   std_logic;
@@ -29,21 +27,18 @@ entity top_level is
         DRAM_RAS_N : out   std_logic;
         DRAM_WE_N  : out   std_logic
     );
-end top_level;
+end entity;
 
 architecture rtl of top_level is
 
-    -- =========================================================================
-    -- Declaração dos Componentes
-    -- =========================================================================
-    
-    -- Componente do PLL (Você deve gerar este IP no Quartus)
+    -- Componentes
     component pll is
         port (
-            refclk   : in  std_logic; -- Entrada: 50 MHz
-            rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
-            outclk_0 : out std_logic; -- Saída: 143 MHz
-            locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
+            refclk   : in  std_logic;
+            rst      : in  std_logic;
+            outclk_0 : out std_logic;
+            outclk_1 : out std_logic;
+            locked   : out std_logic
         );
     end component;
 
@@ -87,91 +82,67 @@ architecture rtl of top_level is
         );
     end component;
 
-    -- =========================================================================
     -- Sinais Internos
-    -- =========================================================================
-    
-    -- Sinais de Clock e Reset
-    signal clk_143    : std_logic;
-    signal pll_locked : std_logic;
-    signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
+    signal clk_143         : std_logic;
+    signal clk_143_shifted : std_logic;
+    signal pll_locked      : std_logic;
+    signal sys_rst_n       : std_logic;
 
-    -- Sinais de Controle
-    signal ready_sig : std_logic;
-    signal req_sig   : std_logic;
-    signal wEn_sig   : std_logic;
-    signal addr_sig  : std_logic_vector(25 downto 0);
+    signal ready_sig       : std_logic;
+    signal req_sig         : std_logic;
+    signal wEn_sig         : std_logic;
+    signal addr_sig        : std_logic_vector(25 downto 0);
     
-    -- Barramentos de dados internos
-    signal data_bus      : std_logic_vector(7 downto 0);
-    signal ctrl_data_out : std_logic_vector(7 downto 0);
+    signal data_bus        : std_logic_vector(7 downto 0);
+    signal ctrl_data_out   : std_logic_vector(7 downto 0);
 
-    -- Sinais para o "esticador de pulso" dos LEDs
-    signal led9_cnt : integer range 0 to 14300000 := 0; -- Ajustado para 143MHz (0.1s = 14.3 milhões de ciclos)
-    signal led9_on  : std_logic := '0';
+    -- Sinais para o LED de status
+    signal led9_cnt        : unsigned(24 downto 0) := (others => '0');
+    signal led9_on         : std_logic := '0';
 
 begin
 
-    -- =========================================================================
-    -- Instanciação do PLL e Lógica de Reset
-    -- =========================================================================
-    
-    -- A maioria dos IPs de PLL da Altera espera um reset ativo em ALTO.
-    -- Como KEY(0) é ativo em BAIXO, invertemos o sinal para resetar o PLL.
     inst_pll: pll
         port map (
             refclk   => CLOCK_50,
             rst      => not KEY(0),
             outclk_0 => clk_143,
+            outclk_1 => clk_143_shifted,
             locked   => pll_locked
         );
 
-    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado AND o PLL estiver travado.
     sys_rst_n <= KEY(0) and pll_locked;
+    DRAM_CLK <= clk_143_shifted;
 
-    -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
-    DRAM_CLK <= clk_143;
-
-    -- =========================================================================
-    -- Lógica do Barramento Interno (Tri-State)
-    -- =========================================================================
+    -- Gerenciamento do Barramento de Dados Interno
+    -- Leitura: iface recebe ctrl_data_out
+    -- Escrita: iface coloca dado no barramento, controller lê via data_in
     data_bus <= ctrl_data_out when wEn_sig = '0' else (others => 'Z');
 
-    -- =========================================================================
-    -- Instanciação do dram_iface
-    -- =========================================================================
     inst_iface: dram_iface
         port map (
-            clk      => clk_143,     -- Atualizado para o novo clock
-            rst      => sys_rst_n,   -- Reset sincronizado com o PLL
+            clk      => clk_143,
+            rst      => sys_rst_n,
             SW       => SW,
             KEY      => KEY,
             ready    => ready_sig,
-            HEX0     => HEX0,
-            HEX1     => HEX1,
-            HEX4     => HEX4,
-            HEX5     => HEX5,
+            HEX0     => HEX0, HEX1 => HEX1, HEX4 => HEX4, HEX5 => HEX5,
             address  => addr_sig,
-            data     => data_bus,
+            data     => data_bus, 
             req      => req_sig,
             wEn      => wEn_sig
         );
 
-    -- =========================================================================
-    -- Instanciação do dram_controller
-    -- =========================================================================
     inst_controller: dram_controller
         port map (
-            clk        => clk_143,    -- Atualizado para o novo clock
-            rst        => sys_rst_n,  -- Reset sincronizado com o PLL
+            clk        => clk_143,
+            rst        => sys_rst_n,
             address    => addr_sig,
-            data_in    => data_bus,    
+            data_in    => data_bus,   
             data_out   => ctrl_data_out, 
             req        => req_sig,
             wEn        => wEn_sig,
             ready      => ready_sig,
-            
-            -- Pinos físicos SDRAM
             dram_addr  => DRAM_ADDR,
             dram_ba    => DRAM_BA,
             dram_cas_n => DRAM_CAS_N,
@@ -183,14 +154,15 @@ begin
             dram_we_n  => DRAM_WE_N
         );
 
-    -- =========================================================================
-    -- Debug Visual
-    -- =========================================================================
-    process(clk_143)
+    -- Debug Visual: LEDR(9) pisca em cada requisição, LEDR(8) indica escrita
+    process(clk_143, sys_rst_n)
     begin
-        if rising_edge(clk_143) then
+        if sys_rst_n = '0' then
+            led9_cnt <= (others => '0');
+            led9_on  <= '0';
+        elsif rising_edge(clk_143) then
             if req_sig = '1' then
-                led9_cnt <= 14300000;
+                led9_cnt <= to_unsigned(7000000, 25); -- ~50ms de brilho
                 led9_on  <= '1';
             elsif led9_cnt > 0 then
                 led9_cnt <= led9_cnt - 1;
@@ -204,4 +176,4 @@ begin
     LEDR(9) <= led9_on;
     LEDR(8) <= wEn_sig;
 
-end rtl;
+end architecture;
