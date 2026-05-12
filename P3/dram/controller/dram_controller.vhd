@@ -145,7 +145,7 @@ begin
                     -- Configuração Mode Register: Burst_length=1, Burst_type=Sequential, CL=3, Operating_mode =Standard, Write_Burst_Mode=Single Location Access
                     -- Seguindo nosso querido datasheet, garantindo compatibilidade com dispositivos futuros deve-se ter BA1, BA0, A12, A11,A10 = 0
                     dram_ba <= "00";
-                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";
+                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";  -- Segundo o datasheet
                     delay_cnt <= T_MRD; 
                     state <= S_WAIT_MRD;
                 
@@ -196,9 +196,10 @@ begin
                     sdram_cmd <= CMD_RD;
                     dram_ba <= req_addr(25 downto 24);  -- Mantém o banco
                     -- dram_addr tem 13 pinos. 
+                    -- A12 até A11 req(23 downto 22)
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= req_addr(23) & req_addr(10) & '0' & req_addr(9 downto 0); 
+                    dram_addr <= req_addr(23 downto 22) & '0' & req_addr(9 downto 0); 
                     delay_cnt <= T_CAS - 1;
                     state <= S_WAIT_CAS;
 
@@ -216,9 +217,10 @@ begin
                     sdram_cmd <= CMD_WR;
                     dram_ba <= req_addr(25 downto 24);  -- Manté o banco
                     -- dram_addr tem 13 pinos. 
+                    -- A12 até A11 req(23 downto 22)
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= req_addr(23) & req_addr(10) & '0' & req_addr(9 downto 0);
+                    dram_addr <= req_addr(23 downto 22) '0' & req_addr(9 downto 0);
                     
                     -- Fornece o dado e habilita a saída Tri-state
                     dq_out <= req_data;
