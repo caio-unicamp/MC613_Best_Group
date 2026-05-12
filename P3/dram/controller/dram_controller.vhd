@@ -202,7 +202,7 @@ begin
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
                     dram_addr <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
-                    delay_cnt <= T_CAS - 1;
+                    delay_cnt <= T_CAS;
                     state <= S_WAIT_CAS;
 
                 when S_WAIT_CAS =>
