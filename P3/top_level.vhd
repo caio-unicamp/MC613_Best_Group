@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity top_level is
     port (
-        CLOCK_50 : in  std_logic;                    -- Clock principal da placa
+        CLOCK_50 : in  std_logic;                    -- Clock principal da placa (50 MHz)
         KEY      : in  std_logic_vector(3 downto 0); -- Botões
         SW       : in  std_logic_vector(9 downto 0); -- Chaves
         
@@ -13,7 +13,7 @@ entity top_level is
         HEX1     : out std_logic_vector(6 downto 0);
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
-        LEDR     : out std_logic_vector(9 downto 0);
+        LEDR     : out std_logic_vector(9 downto 8);
         
         -- =========================================================
         -- Pinos Físicos da SDRAM (Conectam-se ao chip na placa)
@@ -36,6 +36,17 @@ architecture rtl of top_level is
     -- =========================================================================
     -- Declaração dos Componentes
     -- =========================================================================
+    
+    -- Componente do PLL (Você deve gerar este IP no Quartus)
+    component pll_143 is
+        port (
+            refclk   : in  std_logic; -- Entrada: 50 MHz
+            rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
+            outclk_0 : out std_logic; -- Saída: 143 MHz
+            locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
+        );
+    end component;
+
     component dram_iface is
         port (
             clk      : in  std_logic;
@@ -79,40 +90,60 @@ architecture rtl of top_level is
     -- =========================================================================
     -- Sinais Internos
     -- =========================================================================
+    
+    -- Sinais de Clock e Reset
+    signal clk_143    : std_logic;
+    signal pll_locked : std_logic;
+    signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
+
+    -- Sinais de Controle
     signal ready_sig : std_logic;
     signal req_sig   : std_logic;
     signal wEn_sig   : std_logic;
     signal addr_sig  : std_logic_vector(25 downto 0);
     
     -- Barramentos de dados internos
-    signal data_bus      : std_logic_vector(7 downto 0); -- Fio bidirecional ligado na iface
-    signal ctrl_data_out : std_logic_vector(7 downto 0); -- Fio que sai do controller para a iface
+    signal data_bus      : std_logic_vector(7 downto 0);
+    signal ctrl_data_out : std_logic_vector(7 downto 0);
 
     -- Sinais para o "esticador de pulso" dos LEDs
-    signal led9_cnt : integer range 0 to 5000000 := 0;
+    signal led9_cnt : integer range 0 to 14300000 := 0; -- Ajustado para 143MHz (0.1s = 14.3 milhões de ciclos)
     signal led9_on  : std_logic := '0';
 
 begin
 
-    -- Envia o clock da placa diretamente para o chip SDRAM
-    DRAM_CLK <= CLOCK_50;
+    -- =========================================================================
+    -- Instanciação do PLL e Lógica de Reset
+    -- =========================================================================
+    
+    -- A maioria dos IPs de PLL da Altera espera um reset ativo em ALTO.
+    -- Como KEY(0) é ativo em BAIXO, invertemos o sinal para resetar o PLL.
+    inst_pll: pll_143
+        port map (
+            refclk   => CLOCK_50,
+            rst      => not KEY(0),
+            outclk_0 => clk_143,
+            locked   => pll_locked
+        );
+
+    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado AND o PLL estiver travado.
+    sys_rst_n <= KEY(0) and pll_locked;
+
+    -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
+    DRAM_CLK <= clk_143;
 
     -- =========================================================================
     -- Lógica do Barramento Interno (Tri-State)
     -- =========================================================================
-    -- Quando o iface quer LER (wEn = '0'), o top_level pega a saída (data_out)
-    -- do dram_controller e joga no data_bus para o iface conseguir ler.
-    -- Quando o iface quer ESCREVER, deixamos em alta impedância ('Z') para que o próprio
-    -- iface assuma o controle do data_bus e empurre o dado para dentro do controller.
     data_bus <= ctrl_data_out when wEn_sig = '0' else (others => 'Z');
 
     -- =========================================================================
-    -- Instanciação do dram_iface (Seu painel de controle)
+    -- Instanciação do dram_iface
     -- =========================================================================
     inst_iface: dram_iface
         port map (
-            clk      => CLOCK_50,
-            rst      => KEY(0),    -- Reset ativo em baixo conectado diretamente!
+            clk      => clk_143,     -- Atualizado para o novo clock
+            rst      => sys_rst_n,   -- Reset sincronizado com o PLL
             SW       => SW,
             KEY      => KEY,
             ready    => ready_sig,
@@ -127,19 +158,15 @@ begin
         );
 
     -- =========================================================================
-    -- Instanciação do dram_controller (O cérebro da memória)
+    -- Instanciação do dram_controller
     -- =========================================================================
     inst_controller: dram_controller
         port map (
-            clk        => CLOCK_50,
-            rst        => KEY(0),  -- Reset ativo em baixo conectado diretamente!
+            clk        => clk_143,    -- Atualizado para o novo clock
+            rst        => sys_rst_n,  -- Reset sincronizado com o PLL
             address    => addr_sig,
-            
-            -- data_bus contém o valor que o iface quer escrever
             data_in    => data_bus,    
-            -- ctrl_data_out recebe o valor que o controller leu da memória
             data_out   => ctrl_data_out, 
-            
             req        => req_sig,
             wEn        => wEn_sig,
             ready      => ready_sig,
@@ -159,13 +186,11 @@ begin
     -- =========================================================================
     -- Debug Visual
     -- =========================================================================
-    
-    -- Esticador de pulso para ver o LED de requisição piscando
-    process(CLOCK_50)
+    process(clk_143)
     begin
-        if rising_edge(CLOCK_50) then
+        if rising_edge(clk_143) then
             if req_sig = '1' then
-                led9_cnt <= 5000000;
+                led9_cnt <= 14300000;
                 led9_on  <= '1';
             elsif led9_cnt > 0 then
                 led9_cnt <= led9_cnt - 1;
@@ -178,8 +203,5 @@ begin
 
     LEDR(9) <= led9_on;
     LEDR(8) <= wEn_sig;
-    
-    -- Exibe o tráfego do barramento de dados nos LEDs [7:0]
-    LEDR(7 downto 0) <= data_bus;
 
 end rtl;
