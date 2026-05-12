@@ -108,13 +108,14 @@ begin
             dq_oe <= '0';
             ready <= '0';
 
+            
             -- Temporizador de Refresh Automático
-            if state /= S_INIT_WAIT or state /= S_INIT_PRECHARGE or state /= S_INIT_REF_LOOP or state /= S_INIT_LOAD_MODE or state /=S_WAIT_MRD or state /= S_REFRESH_CMD or state /= S_WAIT_RC then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT ou no próprio refresh
-                if refresh_timer > 0 then   -- Decrescente
-                    refresh_timer <= refresh_timer - 1;
-                else
+            if refresh_timer > 0 then   -- Decrescente
+                refresh_timer <= refresh_timer - 1;
+            else
+                refresh_timer <= T_REFI;
+                if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
                     needs_refresh <= true;
-                    refresh_timer <= T_REFI;
                 end if;
             end if;
 
@@ -145,7 +146,7 @@ begin
                     -- Configuração Mode Register: Burst_length=1, Burst_type=Sequential, CL=3, Operating_mode =Standard, Write_Burst_Mode=Single Location Access
                     -- Seguindo nosso querido datasheet, garantindo compatibilidade com dispositivos futuros deve-se ter BA1, BA0, A12, A11,A10 = 0
                     dram_ba <= "00";
-                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";
+                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";  -- Segundo o datasheet
                     delay_cnt <= T_MRD; 
                     state <= S_WAIT_MRD;
                 
@@ -196,9 +197,11 @@ begin
                     sdram_cmd <= CMD_RD;
                     dram_ba <= req_addr(25 downto 24);  -- Mantém o banco
                     -- dram_addr tem 13 pinos. 
+                    -- A12 don't care
+                    -- A11 = req(10)
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= req_addr(23) & req_addr(10) & '0' & req_addr(9 downto 0); 
+                    dram_addr <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
                     delay_cnt <= T_CAS - 1;
                     state <= S_WAIT_CAS;
 
@@ -216,9 +219,11 @@ begin
                     sdram_cmd <= CMD_WR;
                     dram_ba <= req_addr(25 downto 24);  -- Manté o banco
                     -- dram_addr tem 13 pinos. 
+                    -- A12 don't care
+                    -- A11 = req(10)
                     -- A10 = '0' para desativar Auto-Precharge automático
                     -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= req_addr(23) & req_addr(10) & '0' & req_addr(9 downto 0);
+                    dram_addr <= '0' & req_addr(10) & '0' & req_addr(9 downto 0);
                     
                     -- Fornece o dado e habilita a saída Tri-state
                     dq_out <= req_data;
