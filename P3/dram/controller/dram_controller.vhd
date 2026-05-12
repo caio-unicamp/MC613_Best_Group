@@ -50,7 +50,7 @@ architecture rtl of dram_controller is
     constant CMD_REF : std_logic_vector(3 downto 0) := "0001";
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
-    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns)
+    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns) tirando 2 pra margem de erro de conferências
     constant T_200US  : integer := 28600; -- Espera para iniciar o INIT após RESET 
     constant T_RCD    : integer := 2;     -- tRCD = 15ns (~2 a 3 ciclos)
     constant T_MRD    : integer := 2;     -- tMRD = 14ns (~2 a 3 ciclos)
@@ -107,7 +107,6 @@ begin
             sdram_cmd <= CMD_NOP;
             dq_oe <= '0';
             ready <= '0';
-
             
             -- Temporizador de Refresh Automático
             if refresh_timer > 0 then   -- Decrescente
@@ -122,7 +121,7 @@ begin
             case state is
                 -- INIT
                 when S_INIT_WAIT =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_INIT_PRECHARGE;
@@ -151,7 +150,7 @@ begin
                     state <= S_WAIT_MRD;
                 
                 when S_WAIT_MRD =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_IDLE;
@@ -182,7 +181,7 @@ begin
                     state <= S_WAIT_RCD;
 
                 when S_WAIT_RCD =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if req_is_w = '1' then  -- Caso flag de write segue o fluxo de escrita
@@ -206,7 +205,7 @@ begin
                     state <= S_WAIT_CAS;
 
                 when S_WAIT_CAS =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         -- Captura o dado do barramento no momento exato (CL = 3)
@@ -236,7 +235,7 @@ begin
                     -- Mantém o dado sendo dirigido até o fim da recuperação
                     dq_out <= req_data;
                     dq_oe  <= '1';
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_PRECHARGE;
@@ -255,7 +254,7 @@ begin
                     state <= S_WAIT_RP;
 
                 when S_WAIT_RP =>
-                    if delay_cnt > 2 then   -- Decrementa o contador
+                    if delay_cnt > 0 then   -- Decrementa o contador
                         delay_cnt <= delay_cnt - 1;
                     else
                         if needs_refresh then   -- Finaliza Precharge do refresh
@@ -274,7 +273,7 @@ begin
                     state <= S_WAIT_RC;
 
                 when S_WAIT_RC =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if needs_refresh then
