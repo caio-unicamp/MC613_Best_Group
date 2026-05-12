@@ -66,7 +66,7 @@ begin
     -- =========================================================================
     process(clk, rst)
     begin
-        if rst = '1' then 
+        if rst = '0' then 
             state <= ST_RESET;
             sw_reg <= (others => '0');
             data_reg <= (others => '0');

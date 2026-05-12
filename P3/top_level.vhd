@@ -7,17 +7,35 @@ entity top_level is
         CLOCK_50 : in  std_logic;                    -- Clock principal da placa
         KEY      : in  std_logic_vector(3 downto 0); -- Botões
         SW       : in  std_logic_vector(9 downto 0); -- Chaves
+        
+        -- Displays e LEDs
         HEX0     : out std_logic_vector(6 downto 0);
         HEX1     : out std_logic_vector(6 downto 0);
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
-        LEDR     : out std_logic_vector(9 downto 0)  -- LEDs para debug
+        LEDR     : out std_logic_vector(9 downto 0);
+        
+        -- =========================================================
+        -- Pinos Físicos da SDRAM (Conectam-se ao chip na placa)
+        -- =========================================================
+        DRAM_CLK   : out   std_logic; -- Clock enviado para a memória
+        DRAM_ADDR  : out   std_logic_vector(12 downto 0);
+        DRAM_BA    : out   std_logic_vector(1 downto 0);
+        DRAM_CAS_N : out   std_logic;
+        DRAM_CKE   : out   std_logic;
+        DRAM_CS_N  : out   std_logic;
+        DRAM_DQM   : out   std_logic;
+        DRAM_DQ    : inout std_logic_vector(7 downto 0);
+        DRAM_RAS_N : out   std_logic;
+        DRAM_WE_N  : out   std_logic
     );
 end top_level;
 
 architecture rtl of top_level is
 
-    -- Declaração do seu módulo dram_iface
+    -- =========================================================================
+    -- Declaração dos Componentes
+    -- =========================================================================
     component dram_iface is
         port (
             clk      : in  std_logic;
@@ -36,66 +54,65 @@ architecture rtl of top_level is
         );
     end component;
 
-    -- Sinais internos para interligar os módulos
-    signal rst_sig   : std_logic;
+    component dram_controller is
+        port (
+            clk        : in    std_logic;
+            rst        : in    std_logic;
+            address    : in    std_logic_vector(25 downto 0);
+            data_in    : in    std_logic_vector(7 downto 0);  
+            data_out   : out   std_logic_vector(7 downto 0);  
+            req        : in    std_logic;
+            wEn        : in    std_logic;
+            ready      : out   std_logic;
+            dram_addr  : out   std_logic_vector(12 downto 0);
+            dram_ba    : out   std_logic_vector(1 downto 0);
+            dram_cas_n : out   std_logic;
+            dram_cke   : out   std_logic;
+            dram_cs_n  : out   std_logic;
+            dram_dqm   : out   std_logic;    
+            dram_dq    : inout std_logic_vector(7 downto 0);
+            dram_ras_n : out   std_logic;    
+            dram_we_n  : out   std_logic
+        );
+    end component;
+
+    -- =========================================================================
+    -- Sinais Internos
+    -- =========================================================================
     signal ready_sig : std_logic;
     signal req_sig   : std_logic;
     signal wEn_sig   : std_logic;
     signal addr_sig  : std_logic_vector(25 downto 0);
-    signal data_bus  : std_logic_vector(7 downto 0);
     
-    -- =========================================================================
-    -- DUMMY RAM PARA TESTE
-    -- Cria uma pequena memória de 64 posições para simular a DRAM
-    -- =========================================================================
-    type ram_type is array (0 to 63) of std_logic_vector(7 downto 0);
-    signal fake_ram  : ram_type := (others => x"00");
-    signal read_data : std_logic_vector(7 downto 0);
-    signal ram_index : integer range 0 to 63;
+    -- Barramentos de dados internos
+    signal data_bus      : std_logic_vector(7 downto 0); -- Fio bidirecional ligado na iface
+    signal ctrl_data_out : std_logic_vector(7 downto 0); -- Fio que sai do controller para a iface
+
+    -- Sinais para o "esticador de pulso" dos LEDs
+    signal led9_cnt : integer range 0 to 5000000 := 0;
+    signal led9_on  : std_logic := '0';
 
 begin
 
-    -- O botão KEY(0) é ativo em '0' (pressionado = 0).
-    -- Sua dram_iface espera um rst ativo em '1'. Por isso, invertemos o sinal.
-    rst_sig <= not KEY(0);
+    -- Envia o clock da placa diretamente para o chip SDRAM
+    DRAM_CLK <= CLOCK_50;
 
-    -- Finge que o controlador de memória está sempre pronto
-    ready_sig <= '1';
+    -- =========================================================================
+    -- Lógica do Barramento Interno (Tri-State)
+    -- =========================================================================
+    -- Quando o iface quer LER (wEn = '0'), o top_level pega a saída (data_out)
+    -- do dram_controller e joga no data_bus para o iface conseguir ler.
+    -- Quando o iface quer ESCREVER, deixamos em alta impedância ('Z') para que o próprio
+    -- iface assuma o controle do data_bus e empurre o dado para dentro do controller.
+    data_bus <= ctrl_data_out when wEn_sig = '0' else (others => 'Z');
 
-    -- Converte as chaves SW[9:4] em um índice inteiro de 0 a 63 para a Dummy RAM
-    ram_index <= to_integer(unsigned(SW(9 downto 4)));
-
-    -- Processo da memória RAM falsa
-    process(CLOCK_50)
-    begin
-        if rising_edge(CLOCK_50) then
-            -- Se for uma requisição de escrita (req = 1 e wEn = 1)
-            if req_sig = '1' and wEn_sig = '1' then
-                fake_ram(ram_index) <= data_bus;
-            end if;
-            
-            -- Leitura síncrona
-            read_data <= fake_ram(ram_index);
-        end if;
-    end process;
-
-    -- Controle do barramento bidirecional de dados
-    -- Se não estivermos escrevendo (wEn = '0'), colocamos o dado da RAM no barramento.
-    -- Se estivermos escrevendo, deixamos em alta impedância ('Z') para a dram_iface dirigir o barramento.
-    data_bus <= read_data when wEn_sig = '0' else (others => 'Z');
-
-    -- Debug nos LEDs: 
-    -- LEDR(9) acende quando há requisição (req)
-    -- LEDR(8) acende quando é escrita (wEn)
-    -- LEDR(7 downto 0) mostra o que está trafegando no barramento de dados
-    LEDR(9) <= req_sig;
-    LEDR(8) <= wEn_sig;
-
-    -- Instanciação do módulo dram_iface
+    -- =========================================================================
+    -- Instanciação do dram_iface (Seu painel de controle)
+    -- =========================================================================
     inst_iface: dram_iface
         port map (
             clk      => CLOCK_50,
-            rst      => rst_sig,
+            rst      => KEY(0),    -- Reset ativo em baixo conectado diretamente!
             SW       => SW,
             KEY      => KEY,
             ready    => ready_sig,
@@ -108,5 +125,61 @@ begin
             req      => req_sig,
             wEn      => wEn_sig
         );
+
+    -- =========================================================================
+    -- Instanciação do dram_controller (O cérebro da memória)
+    -- =========================================================================
+    inst_controller: dram_controller
+        port map (
+            clk        => CLOCK_50,
+            rst        => KEY(0),  -- Reset ativo em baixo conectado diretamente!
+            address    => addr_sig,
+            
+            -- data_bus contém o valor que o iface quer escrever
+            data_in    => data_bus,    
+            -- ctrl_data_out recebe o valor que o controller leu da memória
+            data_out   => ctrl_data_out, 
+            
+            req        => req_sig,
+            wEn        => wEn_sig,
+            ready      => ready_sig,
+            
+            -- Pinos físicos SDRAM
+            dram_addr  => DRAM_ADDR,
+            dram_ba    => DRAM_BA,
+            dram_cas_n => DRAM_CAS_N,
+            dram_cke   => DRAM_CKE,
+            dram_cs_n  => DRAM_CS_N,
+            dram_dqm   => DRAM_DQM,
+            dram_dq    => DRAM_DQ,
+            dram_ras_n => DRAM_RAS_N,
+            dram_we_n  => DRAM_WE_N
+        );
+
+    -- =========================================================================
+    -- Debug Visual
+    -- =========================================================================
+    
+    -- Esticador de pulso para ver o LED de requisição piscando
+    process(CLOCK_50)
+    begin
+        if rising_edge(CLOCK_50) then
+            if req_sig = '1' then
+                led9_cnt <= 5000000;
+                led9_on  <= '1';
+            elsif led9_cnt > 0 then
+                led9_cnt <= led9_cnt - 1;
+                led9_on  <= '1';
+            else
+                led9_on  <= '0';
+            end if;
+        end if;
+    end process;
+
+    LEDR(9) <= led9_on;
+    LEDR(8) <= wEn_sig;
+    
+    -- Exibe o tráfego do barramento de dados nos LEDs [7:0]
+    LEDR(7 downto 0) <= data_bus;
 
 end rtl;
