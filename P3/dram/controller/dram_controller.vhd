@@ -99,7 +99,8 @@ begin
             dq_oe <= '0';
             needs_refresh <= false;
             refresh_timer <= T_REFI;
-            dram_ba <= "00";
+            dram_ba <= "00";    -- Tem que ver issae
+            ref_init_cnt <= 0;
             dram_addr <= (others => '0');
 
         elsif rising_edge(clk) then
