@@ -1,0 +1,10 @@
+
+    tRCD (ACTIVATE -> READ/WRITE)	15ns	2 ciclos
+    tCAS (latência de leitura)			3 ciclos
+    tRP (PRECHARGE)			15ns	2 ciclos
+    tRC (REFRESH)			60ns 	9 ciclos
+    tREF (REFRESH)			64ms	9.152.000 ciclos				
+    tDPL (WRITE -> PRECHARGE)		14ns	2 ciclos
+    tMRD (LOAD MODE)			14ns	2 ciclos
+    
+
