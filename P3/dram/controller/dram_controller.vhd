@@ -286,7 +286,7 @@ begin
                 dram_ba_comb <= req_addr(25 downto 24);  
                 dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
                 load_delay <= '1';
-                next_delay_val <= T_CAS - 1;
+                next_delay_val <= T_CAS-1;
                 next_state <= S_WAIT_CAS;
 
             when S_WAIT_CAS =>
