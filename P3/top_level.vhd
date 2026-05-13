@@ -13,7 +13,7 @@ entity top_level is
         HEX1     : out std_logic_vector(6 downto 0);
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
-        LEDR     : out std_logic_vector(9 downto 8);
+        LEDR     : out std_logic_vector(9 downto 0);
         
         -- =========================================================
         -- Pinos Físicos da SDRAM (Conectam-se ao chip na placa)
