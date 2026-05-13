@@ -8,8 +8,8 @@ entity dram_controller is
         rst      : in    std_logic;
         -- Interface com dram_iface
         address  : in    std_logic_vector(25 downto 0);
-        data_in  : in    std_logic_vector(7 downto 0);  -- Dado a ser lido
-        data_out : out   std_logic_vector(7 downto 0);  -- Dado a ser escrito
+        data_in  : in    std_logic_vector(7 downto 0);  
+        data_out : out   std_logic_vector(7 downto 0);  
         req      : in    std_logic;
         wEn      : in    std_logic;
         ready    : out   std_logic;
@@ -29,89 +29,119 @@ end entity;
 
 architecture rtl of dram_controller is
 
-    -- Definição dos Estados da FSM
     type state_type is (
         S_INIT_WAIT, S_INIT_PRECHARGE, S_INIT_REF_LOOP, S_INIT_LOAD_MODE, S_WAIT_MRD,
-        S_IDLE,
-        S_ACTIVATE, S_WAIT_RCD,
-        S_READ_CMD, S_WAIT_CAS,
-        S_WRITE_CMD, S_WAIT_DPL,
-        S_PRECHARGE, S_WAIT_RP,
-        S_REFRESH_CMD, S_WAIT_RC --tRFC
+        S_IDLE, S_ACTIVATE, S_WAIT_RCD, S_READ_CMD, S_WAIT_CAS,
+        S_WRITE_CMD, S_WAIT_DPL, S_PRECHARGE, S_WAIT_RP,
+        S_REFRESH_CMD, S_WAIT_RC
     );
-    signal state : state_type;
+    signal state      : state_type;
+    signal next_state : state_type;
 
-    -- Constantes de Comandos (CS_n, RAS_n, CAS_n, WE_n)
+    -- Constantes de Comandos
     constant CMD_NOP : std_logic_vector(3 downto 0) := "0111";
     constant CMD_ACT : std_logic_vector(3 downto 0) := "0011";
-    constant CMD_RD  : std_logic_vector(3 downto 0) := "0101";  -- read
-    constant CMD_WR  : std_logic_vector(3 downto 0) := "0100";  -- write
+    constant CMD_RD  : std_logic_vector(3 downto 0) := "0101"; 
+    constant CMD_WR  : std_logic_vector(3 downto 0) := "0100"; 
     constant CMD_PRE : std_logic_vector(3 downto 0) := "0010";
     constant CMD_REF : std_logic_vector(3 downto 0) := "0001";
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
-    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns) tirando 2 pra margem de erro de conferências
-    constant T_200US  : integer := 28600 - 2; -- Espera para iniciar o INIT após RESET 
-    constant T_RCD    : integer := 2 - 2;     -- tRCD = 15ns (~2 a 3 ciclos)
-    constant T_MRD    : integer := 2 - 2;     -- tMRD = 14ns (~2 a 3 ciclos)
-    constant T_CAS    : integer := 3 - 2;     -- CL = 3 ciclos
-    constant T_DPL    : integer := 2 - 2;     -- tWR/tDPL após escrita
-    constant T_RP     : integer := 2 - 2;     -- tRP = 15ns (~2 a 3 ciclos)
-    constant T_RC    : integer := 9 - 2;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
-    constant T_REFI   : integer := 1100;  -- Intervalo de refresh (~7.8us = 1114 ciclos de clock/o maior tempo entre READ e WRITE são 7 ciclos de clock, tirando o dobro fica 1100 ciclos para não ter perigo de interromper um outro fluxo)
+    -- Constantes de Temporização
+    constant T_200US  : integer := 100; 
+    constant T_RCD    : integer := 2;     
+    constant T_MRD    : integer := 2;     
+    constant T_CAS    : integer := 3;     
+    constant T_DPL    : integer := 2;     
+    constant T_RP     : integer := 2;     
+    constant T_RC     : integer := 9;     
+    constant T_REFI   : integer := 1100;  
 
-    -- Sinais Internos
-    signal sdram_cmd     : std_logic_vector(3 downto 0);
+    -- Sinais de Controle (Gerados pela Lógica Combinacional para o Datapath)
+    signal load_delay    : std_logic;
+    signal next_delay_val: integer range 0 to 32767;
+    signal set_ref_cnt   : std_logic;
+    signal dec_ref_cnt   : std_logic;
+    signal clear_init    : std_logic;
+    signal clear_refresh : std_logic;
+    signal latch_req     : std_logic;
+    signal latch_data    : std_logic;
+    signal set_dq_oe     : std_logic;
+    signal update_dq_out : std_logic;
+
+    -- Sinais do Datapath (Contadores e Registradores)
     signal delay_cnt     : integer range 0 to 32767;
-    signal ref_init_cnt  : integer range 0 to 8;   -- Contador de loops de refresh no INIT
-    signal refresh_timer : integer range 0 to 1200; -- Contador para o refresh periódico
-    signal needs_refresh : boolean; -- Flag para verificar se deve entrar em refresh
-
-    -- Registradores de requisição
-    signal req_addr : std_logic_vector(25 downto 0);    -- Organizado como BA = 25 downto 24(BA1 - BA0), ROW = 23 downto 11(A12 - A0), COL = 10(A11) + 9 downto 0(A9 - A0)
-    signal req_data : std_logic_vector(7 downto 0);
-    signal req_is_w : std_logic;
-
-    -- Controle do Tri-state do Barramento de Dados
-    signal dq_out : std_logic_vector(7 downto 0);
-    signal dq_oe  : std_logic; -- Output Enable
+    signal ref_init_cnt  : integer range 0 to 8;   
+    signal refresh_timer : integer range 0 to 1200; 
+    signal needs_refresh : boolean; 
+    signal is_init       : boolean;
+    signal req_addr      : std_logic_vector(25 downto 0);    
+    signal req_data      : std_logic_vector(7 downto 0);
+    signal req_is_w      : std_logic;
+    signal dq_out        : std_logic_vector(7 downto 0);
+    signal dq_oe         : std_logic; 
+    
+    -- Sinais Auxiliares para a Lógica Combinacional
+    signal sdram_cmd      : std_logic_vector(3 downto 0);
+    signal dram_addr_comb : std_logic_vector(12 downto 0);
+    signal dram_ba_comb   : std_logic_vector(1 downto 0);
 
 begin
-    -- Mapeamento dos pinos de comando
+
+    -- Mapeamento dos pinos fixos e de comando
+    dram_cke   <= '1'; 
+    dram_dqm   <= '0'; 
     dram_cs_n  <= sdram_cmd(3);
     dram_ras_n <= sdram_cmd(2);
     dram_cas_n <= sdram_cmd(1);
     dram_we_n  <= sdram_cmd(0);
     
-    dram_cke <= '1'; -- Clock Enable sempre ativo
-    dram_dqm <= '0'; 
+    dram_addr  <= dram_addr_comb;
+    dram_ba    <= dram_ba_comb;
 
-    -- Lógica do buffer Tri-state para a porta INOUT
+    -- Buffer Tri-state
     dram_dq <= dq_out when dq_oe = '1' else (others => 'Z');
 
+
+    -- =========================================================================
+    -- PROCESSO 1: Sincronizador de Estado (Apenas muda o estado)
+    -- =========================================================================
     process(clk, rst)
     begin
-        if rst = '0' then -- Reset ativo em baixo (KEY(0))
+        if rst = '0' then 
             state <= S_INIT_WAIT;
-            delay_cnt <= T_200US;
-            ready <= '0';
-            sdram_cmd <= CMD_NOP;
-            dq_oe <= '0';
-            needs_refresh <= false;
-            refresh_timer <= T_REFI;
-            dram_ba <= "00";    -- Tem que ver issae
-            ref_init_cnt <= 0;
-            dram_addr <= (others => '0');
-
         elsif rising_edge(clk) then
-            -- Valores Padrão por Ciclo
-            sdram_cmd <= CMD_NOP;
-            dq_oe <= '0';
-            ready <= '0';
+            state <= next_state;
+        end if;
+    end process;
+
+
+    -- =========================================================================
+    -- PROCESSO 2: Datapath e Contadores (Memória interna e temporal)
+    -- =========================================================================
+    process(clk, rst)
+    begin
+        if rst = '0' then 
+            is_init       <= true;
+            delay_cnt     <= T_200US;
+            refresh_timer <= T_REFI;
+            needs_refresh <= false;
+            ref_init_cnt  <= 0;
+            req_addr      <= (others => '0');
+            req_data      <= (others => '0');
+            req_is_w      <= '0';
+            data_out      <= (others => '0');
+            dq_out        <= (others => '0');
+            dq_oe         <= '0';
             
-            -- Temporizador de Refresh Automático
-            if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
-                if refresh_timer > 0 then   -- Decrescente
+        elsif rising_edge(clk) then
+            -- 2.1 Lógica Base dos Contadores (Decremento Automático)
+            if delay_cnt > 0 then
+                delay_cnt <= delay_cnt - 1;
+            end if;
+
+            if not is_init then    
+                if refresh_timer > 0 then   
                     refresh_timer <= refresh_timer - 1;
                 else
                     refresh_timer <= T_REFI;
@@ -119,178 +149,217 @@ begin
                 end if;
             end if;
 
-            case state is
-                -- INIT
-                when S_INIT_WAIT =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        state <= S_INIT_PRECHARGE;
-                    end if;
+            -- 2.2 Sinais de "Override" controlados pela FSM
+            if load_delay = '1' then
+                delay_cnt <= next_delay_val;
+            end if;
 
-                when S_INIT_PRECHARGE =>
-                    sdram_cmd <= CMD_PRE;
-                    dram_addr(10) <= '1'; -- A10 em 1 = Precharge ALL Banks
-                    delay_cnt <= T_RP;  -- Espera Trp entre PRECHARGE e AUTO_REFRESH
-                    ref_init_cnt <= 8; -- Vai fazer o AUTO_REFRESH 8 vezes
-                    state <= S_WAIT_RP;
+            if set_ref_cnt = '1' then
+                ref_init_cnt <= 8;
+            elsif dec_ref_cnt = '1' then
+                ref_init_cnt <= ref_init_cnt - 1;
+            end if;
 
-                when S_INIT_REF_LOOP => -- Loop do refresh do INIT
-                    sdram_cmd <= CMD_REF;
-                    delay_cnt <= T_RC;
-                    ref_init_cnt <= ref_init_cnt - 1;
-                    state <= S_WAIT_RC;
+            if clear_init = '1' then
+                is_init <= false;
+            end if;
 
-                when S_INIT_LOAD_MODE =>
-                    sdram_cmd <= CMD_MRS;
-                    -- Configuração Mode Register: Burst_length=1, Burst_type=Sequential, CL=3, Operating_mode =Standard, Write_Burst_Mode=Single Location Access
-                    -- Seguindo nosso querido datasheet, garantindo compatibilidade com dispositivos futuros deve-se ter BA1, BA0, A12, A11,A10 = 0
-                    dram_ba <= "00";
-                    dram_addr <= "000" & "1" & "00" & "011" & "0" & "000";  -- Segundo o datasheet
-                    delay_cnt <= T_MRD; 
-                    state <= S_WAIT_MRD;
-                
-                when S_WAIT_MRD =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        state <= S_IDLE;
-                    end if;
+            if clear_refresh = '1' then
+                needs_refresh <= false;
+            end if;
 
-                -- READY
-                when S_IDLE =>
-                    ready <= '1'; -- Sinaliza ao dram_iface que está livre
+            if latch_req = '1' then
+                req_addr <= address;
+                req_data <= data_in;
+                req_is_w <= wEn;
+            end if;
 
-                    if needs_refresh then   -- Interrompe outros fluxos caso precise dar o refresh
-                        ready <= '0';
-                        state <= S_PRECHARGE;   -- O primeiro passo do refresh periódico: dar um precharge
-                    elsif req = '1' then
-                        ready <= '0';
-                        req_addr <= address;
-                        req_data <= data_in;
-                        req_is_w <= wEn;
-                        state <= S_ACTIVATE;
-                    end if;
+            if latch_data = '1' then
+                data_out <= dram_dq;
+            end if;
 
-                -- ACTIVATE
-                when S_ACTIVATE =>
-                    sdram_cmd <= CMD_ACT;
-                    -- Endereçamento hierárquico
-                    dram_ba   <= req_addr(25 downto 24); -- Banco
-                    dram_addr <= req_addr(23 downto 11);  -- Linha (Row)
-                    delay_cnt <= T_RCD;
-                    state <= S_WAIT_RCD;
+            if update_dq_out = '1' then
+                dq_out <= req_data;
+            end if;
+            
+            -- Lógica para garantir que o dq_oe suba exatamente junto com o dq_out
+            if set_dq_oe = '1' then
+                dq_oe <= '1';
+            else
+                dq_oe <= '0';
+            end if;
 
-                when S_WAIT_RCD =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        if req_is_w = '1' then  -- Caso flag de write segue o fluxo de escrita
-                            state <= S_WRITE_CMD;
-                        else    -- Caso contrário segue o fluxo de leitura
-                            state <= S_READ_CMD;
-                        end if;
-                    end if;
-
-                -- READ
-                when S_READ_CMD =>
-                    sdram_cmd <= CMD_RD;
-                    dram_ba <= req_addr(25 downto 24);  -- Mantém o banco
-                    -- dram_addr tem 13 pinos. 
-                    -- A12 don't care
-                    -- A11 = req(10)
-                    -- A10 = '0' para desativar Auto-Precharge automático
-                    -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
-                    delay_cnt <= T_CAS;
-                    state <= S_WAIT_CAS;
-
-                when S_WAIT_CAS =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        -- Captura o dado do barramento no momento exato (CL = 3)
-                        data_out <= dram_dq;
-                        state <= S_PRECHARGE;
-                    end if;
-
-                -- WRITE
-                when S_WRITE_CMD =>
-                    sdram_cmd <= CMD_WR;
-                    dram_ba <= req_addr(25 downto 24);  -- Manté o banco
-                    -- dram_addr tem 13 pinos. 
-                    -- A12 don't care
-                    -- A11 = req(10)
-                    -- A10 = '0' para desativar Auto-Precharge automático
-                    -- A9 até A0 recebem os 10 bits da coluna.
-                    dram_addr <= '0' & req_addr(10) & '0' & req_addr(9 downto 0);
-                    
-                    -- Fornece o dado e habilita a saída Tri-state
-                    dq_out <= req_data;
-                    dq_oe  <= '1'; 
-                    
-                    delay_cnt <= T_DPL;
-                    state <= S_WAIT_DPL;
-
-                when S_WAIT_DPL =>
-                    -- Mantém o dado sendo dirigido até o fim da recuperação
-                    dq_out <= req_data;
-                    dq_oe  <= '1';
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        state <= S_PRECHARGE;
-                    end if;
-
-                -- PRECHARGE
-                when S_PRECHARGE =>
-                    sdram_cmd <= CMD_PRE;
-                    if needs_refresh then   -- BA don't care (Precharge do refresh)
-                        dram_addr(10) <= '1';   -- Abre todos os bancos para refresh
-                    else    -- Precharge do READ/WRITE
-                        dram_ba <= req_addr(25 downto 24);
-                        dram_addr(10) <= '0'; -- Fecha apenas o banco ativo
-                    end if;
-                    delay_cnt <= T_RP;
-                    state <= S_WAIT_RP;
-
-                when S_WAIT_RP =>
-                    if delay_cnt > 0 then   -- Decrementa o contador
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        if needs_refresh then   -- Finaliza Precharge do refresh
-                            state <= S_REFRESH_CMD;
-                        elsif ref_init_cnt > 0 then
-                            state <= S_INIT_REF_LOOP; -- Retorna para o Loop de Init
-                        else    -- Precharge do READ/WRITE
-                            state <= S_IDLE;
-                        end if;
-                    end if;
-
-                -- REFRESH PERIÓDICO
-                when S_REFRESH_CMD =>
-                    sdram_cmd <= CMD_REF;
-                    delay_cnt <= T_RC;
-                    state <= S_WAIT_RC;
-
-                when S_WAIT_RC =>
-                    if delay_cnt > 0 then
-                        delay_cnt <= delay_cnt - 1;
-                    else
-                        if needs_refresh then
-                            needs_refresh <= false; -- Reseta a flag
-                            state <= S_IDLE;    -- Volta para ready
-                        elsif ref_init_cnt > 0 then
-                            state <= S_INIT_REF_LOOP; -- Volta no loop do refresh init até acabar a qtd correta
-                        else
-                            state <= S_INIT_LOAD_MODE;  -- Quando acabar os loops segue para o Load Mode Register
-                        end if;
-                    end if;
-
-                when others =>
-                    state <= S_INIT_WAIT;
-            end case;
         end if;
+    end process;
+
+
+    -- =========================================================================
+    -- PROCESSO 3: Unidade de Controle FSM (Combinacional)
+    -- =========================================================================
+    -- Válido para VHDL-93: Todas as entradas lidas precisam estar na lista de sensibilidade
+    process(state, delay_cnt, ref_init_cnt, needs_refresh, req, req_is_w, req_addr)
+    begin
+        -- 3.1 Valores Padrão (Evita a criação de Latches)
+        next_state     <= state;
+        sdram_cmd      <= CMD_NOP;
+        ready          <= '0';
+        dram_addr_comb <= (others => '0');
+        dram_ba_comb   <= "00";
+
+        load_delay     <= '0';
+        next_delay_val <= 0;
+        set_ref_cnt    <= '0';
+        dec_ref_cnt    <= '0';
+        clear_init     <= '0';
+        clear_refresh  <= '0';
+        latch_req      <= '0';
+        latch_data     <= '0';
+        set_dq_oe      <= '0';
+        update_dq_out  <= '0';
+
+        -- 3.2 Lógica de Próximo Estado e Saídas
+        case state is
+            when S_INIT_WAIT =>
+                if delay_cnt = 0 then
+                    next_state <= S_INIT_PRECHARGE;
+                end if;
+
+            when S_INIT_PRECHARGE =>
+                sdram_cmd <= CMD_PRE;
+                dram_addr_comb(10) <= '1'; 
+                load_delay <= '1';
+                next_delay_val <= T_RP;
+                set_ref_cnt <= '1';
+                next_state <= S_WAIT_RP;
+
+            when S_INIT_REF_LOOP => 
+                sdram_cmd <= CMD_REF;
+                load_delay <= '1';
+                next_delay_val <= T_RC;
+                dec_ref_cnt <= '1';
+                next_state <= S_WAIT_RC;
+
+            when S_INIT_LOAD_MODE =>
+                sdram_cmd <= CMD_MRS;
+                dram_ba_comb <= "00";
+                dram_addr_comb <= "000" & "1" & "00" & "011" & "0" & "000";  
+                load_delay <= '1';
+                next_delay_val <= T_MRD; 
+                next_state <= S_WAIT_MRD;
+                
+            when S_WAIT_MRD =>
+                if delay_cnt = 0 then
+                    clear_init <= '1';
+                    next_state <= S_IDLE;
+                end if;
+
+            when S_IDLE =>
+                ready <= '1'; 
+                if needs_refresh then   
+                    ready <= '0';
+                    next_state <= S_PRECHARGE;   
+                elsif req = '1' then
+                    ready <= '0';
+                    latch_req <= '1'; -- Avisa o Datapath para capturar os dados do dram_iface
+                    next_state <= S_ACTIVATE;
+                end if;
+
+            when S_ACTIVATE =>
+                sdram_cmd <= CMD_ACT;
+                dram_ba_comb   <= req_addr(25 downto 24); 
+                dram_addr_comb <= req_addr(23 downto 11);  
+                load_delay <= '1';
+                next_delay_val <= T_RCD;
+                next_state <= S_WAIT_RCD;
+
+            when S_WAIT_RCD =>
+                if delay_cnt = 0 then
+                    if req_is_w = '1' then  
+                        next_state <= S_WRITE_CMD;
+                    else    
+                        next_state <= S_READ_CMD;
+                    end if;
+                end if;
+
+            when S_READ_CMD =>
+                sdram_cmd <= CMD_RD;
+                dram_ba_comb <= req_addr(25 downto 24);  
+                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
+                load_delay <= '1';
+                next_delay_val <= T_CAS - 1;
+                next_state <= S_WAIT_CAS;
+
+            when S_WAIT_CAS =>
+                if delay_cnt = 0 then
+                    latch_data <= '1'; -- Avisa o Datapath para capturar o pino dram_dq
+                    next_state <= S_PRECHARGE;
+                end if;
+
+            when S_WRITE_CMD =>
+                sdram_cmd <= CMD_WR;
+                dram_ba_comb <= req_addr(25 downto 24);  
+                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(9 downto 0);
+                
+                set_dq_oe <= '1';
+                update_dq_out <= '1';
+                
+                load_delay <= '1';
+                next_delay_val <= T_DPL;
+                next_state <= S_WAIT_DPL;
+
+            when S_WAIT_DPL =>
+                set_dq_oe <= '1';
+                update_dq_out <= '1';
+                
+                if delay_cnt = 0 then
+                    next_state <= S_PRECHARGE;
+                end if;
+
+            when S_PRECHARGE =>
+                sdram_cmd <= CMD_PRE;
+                if needs_refresh then   
+                    dram_addr_comb(10) <= '1';   
+                else    
+                    dram_ba_comb <= req_addr(25 downto 24);
+                    dram_addr_comb(10) <= '0'; 
+                end if;
+                
+                load_delay <= '1';
+                next_delay_val <= T_RP;
+                next_state <= S_WAIT_RP;
+
+            when S_WAIT_RP =>
+                if delay_cnt = 0 then
+                    if needs_refresh then   
+                        next_state <= S_REFRESH_CMD;
+                    elsif ref_init_cnt > 0 then
+                        next_state <= S_INIT_REF_LOOP; 
+                    else    
+                        next_state <= S_IDLE;
+                    end if;
+                end if;
+
+            when S_REFRESH_CMD =>
+                sdram_cmd <= CMD_REF;
+                load_delay <= '1';
+                next_delay_val <= T_RC;
+                next_state <= S_WAIT_RC;
+
+            when S_WAIT_RC =>
+                if delay_cnt = 0 then
+                    if needs_refresh then
+                        clear_refresh <= '1';
+                        next_state <= S_IDLE;    
+                    elsif ref_init_cnt > 0 then
+                        next_state <= S_INIT_REF_LOOP; 
+                    else
+                        next_state <= S_INIT_LOAD_MODE;  
+                    end if;
+                end if;
+
+            when others =>
+                next_state <= S_INIT_WAIT;
+        end case;
     end process;
 
 end architecture;
