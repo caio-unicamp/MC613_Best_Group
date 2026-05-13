@@ -106,10 +106,6 @@ architecture rtl of top_level is
     signal data_bus      : std_logic_vector(7 downto 0);
     signal ctrl_data_out : std_logic_vector(7 downto 0);
 
-    -- Sinais para o "esticador de pulso" dos LEDs
-    signal led9_cnt : integer range 0 to 14300000 := 0; -- Ajustado para 143MHz (0.1s = 14.3 milhões de ciclos)
-    signal led9_on  : std_logic := '0';
-
 begin
 
     -- =========================================================================
@@ -183,25 +179,7 @@ begin
             dram_we_n  => DRAM_WE_N
         );
 
-    -- =========================================================================
-    -- Debug Visual
-    -- =========================================================================
-    process(clk_143)
-    begin
-        if rising_edge(clk_143) then
-            if req_sig = '1' then
-                led9_cnt <= 14300000;
-                led9_on  <= '1';
-            elsif led9_cnt > 0 then
-                led9_cnt <= led9_cnt - 1;
-                led9_on  <= '1';
-            else
-                led9_on  <= '0';
-            end if;
-        end if;
-    end process;
-
-    LEDR(9) <= led9_on;
+    LEDR(9) <= req_sig;
     LEDR(8) <= wEn_sig;
 
 end rtl;
