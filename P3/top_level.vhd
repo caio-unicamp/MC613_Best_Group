@@ -13,6 +13,8 @@ entity top_level is
         HEX1     : out std_logic_vector(6 downto 0);
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
+		  HEX2     : out std_logic_vector(6 downto 0) := (others => '1');
+		  HEX3     : out std_logic_vector(6 downto 0) := (others => '1');
         LEDR     : out std_logic_vector(9 downto 0);
         
         -- =========================================================
@@ -43,6 +45,7 @@ architecture rtl of top_level is
             refclk   : in  std_logic; -- Entrada: 50 MHz
             rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
             outclk_0 : out std_logic; -- Saída: 143 MHz
+				outclk_1 : out std_logic; -- Saída: 143 MHz shift
             locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
         );
     end component;
@@ -93,6 +96,7 @@ architecture rtl of top_level is
     
     -- Sinais de Clock e Reset
     signal clk_143    : std_logic;
+	 signal clk_143_shifted    : std_logic;
     signal pll_locked : std_logic;
     signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
 
@@ -119,6 +123,7 @@ begin
             refclk   => CLOCK_50,
             rst      => not KEY(0),
             outclk_0 => clk_143,
+				outclk_1 => clk_143_shifted,
             locked   => pll_locked
         );
 
@@ -126,7 +131,7 @@ begin
     sys_rst_n <= KEY(0) and pll_locked;
 
     -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
-    DRAM_CLK <= clk_143;
+    DRAM_CLK <= clk_143_shifted;
 
     -- =========================================================================
     -- Lógica do Barramento Interno (Tri-State)
@@ -178,6 +183,7 @@ begin
             dram_ras_n => DRAM_RAS_N,
             dram_we_n  => DRAM_WE_N
         );
+
 
     LEDR(9) <= req_sig;
     LEDR(8) <= wEn_sig;
