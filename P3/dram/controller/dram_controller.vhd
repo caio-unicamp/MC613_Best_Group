@@ -50,14 +50,14 @@ architecture rtl of dram_controller is
     constant CMD_REF : std_logic_vector(3 downto 0) := "0001";
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
-    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns)
-    constant T_200US  : integer := 28600; -- Espera para iniciar o INIT após RESET 
-    constant T_RCD    : integer := 2;     -- tRCD = 15ns (~2 a 3 ciclos)
-    constant T_MRD    : integer := 2;     -- tMRD = 14ns (~2 a 3 ciclos)
-    constant T_CAS    : integer := 3;     -- CL = 3 ciclos
-    constant T_DPL    : integer := 2;     -- tWR/tDPL após escrita
-    constant T_RP     : integer := 2;     -- tRP = 15ns (~2 a 3 ciclos)
-    constant T_RC    : integer := 9;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
+    -- Constantes de Temporização em nº de ciclos (Baseadas em 143 MHz -> T = ~7ns) tirando 2 pra margem de erro de conferências
+    constant T_200US  : integer := 28600 - 2; -- Espera para iniciar o INIT após RESET 
+    constant T_RCD    : integer := 2 - 2;     -- tRCD = 15ns (~2 a 3 ciclos)
+    constant T_MRD    : integer := 2 - 2;     -- tMRD = 14ns (~2 a 3 ciclos)
+    constant T_CAS    : integer := 3 - 2;     -- CL = 3 ciclos
+    constant T_DPL    : integer := 2 - 2;     -- tWR/tDPL após escrita
+    constant T_RP     : integer := 2 - 2;     -- tRP = 15ns (~2 a 3 ciclos)
+    constant T_RC    : integer := 9 - 2;     -- tRC(ou tRFC) = 60ns (~9 ciclos)
     constant T_REFI   : integer := 1100;  -- Intervalo de refresh (~7.8us = 1114 ciclos de clock/o maior tempo entre READ e WRITE são 7 ciclos de clock, tirando o dobro fica 1100 ciclos para não ter perigo de interromper um outro fluxo)
 
     -- Sinais Internos
@@ -99,7 +99,8 @@ begin
             dq_oe <= '0';
             needs_refresh <= false;
             refresh_timer <= T_REFI;
-            dram_ba <= "00";
+            dram_ba <= "00";    -- Tem que ver issae
+            ref_init_cnt <= 0;
             dram_addr <= (others => '0');
 
         elsif rising_edge(clk) then
@@ -107,14 +108,13 @@ begin
             sdram_cmd <= CMD_NOP;
             dq_oe <= '0';
             ready <= '0';
-
             
             -- Temporizador de Refresh Automático
-            if refresh_timer > 0 then   -- Decrescente
-                refresh_timer <= refresh_timer - 1;
-            else
-                refresh_timer <= T_REFI;
-                if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
+            if state /= S_INIT_WAIT and state /= S_INIT_PRECHARGE and state /= S_INIT_REF_LOOP and state /= S_INIT_LOAD_MODE and state /=S_WAIT_MRD then    -- Não precisa atualizar o timer do refresh se estiver em modo de INIT 
+                if refresh_timer > 0 then   -- Decrescente
+                    refresh_timer <= refresh_timer - 1;
+                else
+                    refresh_timer <= T_REFI;
                     needs_refresh <= true;
                 end if;
             end if;
@@ -122,7 +122,7 @@ begin
             case state is
                 -- INIT
                 when S_INIT_WAIT =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_INIT_PRECHARGE;
@@ -151,7 +151,7 @@ begin
                     state <= S_WAIT_MRD;
                 
                 when S_WAIT_MRD =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_IDLE;
@@ -182,7 +182,7 @@ begin
                     state <= S_WAIT_RCD;
 
                 when S_WAIT_RCD =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if req_is_w = '1' then  -- Caso flag de write segue o fluxo de escrita
@@ -206,7 +206,7 @@ begin
                     state <= S_WAIT_CAS;
 
                 when S_WAIT_CAS =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         -- Captura o dado do barramento no momento exato (CL = 3)
@@ -236,7 +236,7 @@ begin
                     -- Mantém o dado sendo dirigido até o fim da recuperação
                     dq_out <= req_data;
                     dq_oe  <= '1';
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         state <= S_PRECHARGE;
@@ -255,7 +255,7 @@ begin
                     state <= S_WAIT_RP;
 
                 when S_WAIT_RP =>
-                    if delay_cnt > 2 then   -- Decrementa o contador
+                    if delay_cnt > 0 then   -- Decrementa o contador
                         delay_cnt <= delay_cnt - 1;
                     else
                         if needs_refresh then   -- Finaliza Precharge do refresh
@@ -274,7 +274,7 @@ begin
                     state <= S_WAIT_RC;
 
                 when S_WAIT_RC =>
-                    if delay_cnt > 2 then
+                    if delay_cnt > 0 then
                         delay_cnt <= delay_cnt - 1;
                     else
                         if needs_refresh then
