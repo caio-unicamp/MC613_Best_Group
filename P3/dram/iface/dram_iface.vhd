@@ -6,7 +6,7 @@ entity dram_iface is
     port (
         clk      : in  std_logic;
         rst      : in  std_logic;
-        -- Entradas da placa (Atualizado para 9 downto 0 para acessar os bits de dados)
+        -- Entradas da placa
         SW       : in  std_logic_vector(9 downto 0);
         KEY      : in  std_logic_vector(3 downto 0);
         -- Sinal de controle da DRAM
@@ -49,9 +49,7 @@ architecture rtl of dram_iface is
     -- Sinal auxiliar para o HEX5
     signal hex5_in  : std_logic_vector(3 downto 0);
 
-    -- =========================================================================
     -- Declaração do componente bin2hex
-    -- =========================================================================
     component bin2hex is
         port (
             BIN : in  std_logic_vector(3 downto 0);
@@ -61,9 +59,7 @@ architecture rtl of dram_iface is
 
 begin
 
-    -- =========================================================================
     -- 1. Processo Sequencial: Atualização de Estado e Registradores
-    -- =========================================================================
     process(clk, rst)
     begin
         if rst = '0' then 
