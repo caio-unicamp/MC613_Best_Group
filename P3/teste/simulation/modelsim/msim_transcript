@@ -1,0 +1,195 @@
+# do top_level_run_msim_rtl_vhdl.do
+# if ![file isdirectory top_level_iputf_libs] {
+# 	file mkdir top_level_iputf_libs
+# }
+# 
+# if {[file exists rtl_work]} {
+# 	vdel -lib rtl_work -all
+# }
+# vlib rtl_work
+# vmap work rtl_work
+# Model Technology ModelSim - Intel FPGA Edition vmap 10.5b Lib Mapping Utility 2016.10 Oct  5 2016
+# vmap work rtl_work 
+# Copying /opt/altera/17.1/modelsim_ase/linuxaloem/../modelsim.ini to modelsim.ini
+# Modifying modelsim.ini
+# 
+###### Libraries for IPUTF cores 
+###### End libraries for IPUTF cores 
+###### MIF file copy and HDL compilation commands for IPUTF cores 
+# 
+# 
+# vcom "/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/pll_sim/pll.vho"
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/pll_sim/pll.vho 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package altera_lnsim_components
+# -- Compiling entity pll
+# -- Compiling architecture RTL of pll
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/top_level.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/top_level.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity top_level
+# -- Compiling architecture rtl of top_level
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity dram_iface
+# -- Compiling architecture rtl of dram_iface
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity bin2hex
+# -- Compiling architecture rtl of bin2hex
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity dram_controller
+# -- Compiling architecture rtl of dram_controller
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/controller/dram_controller.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/controller/dram_controller.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity dram_controller
+# -- Compiling architecture rtl of dram_controller
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/utils/bin2hex.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/utils/bin2hex.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Compiling entity bin2hex
+# -- Compiling architecture rtl of bin2hex
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/iface/dram_iface.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../dram/iface/dram_iface.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity dram_iface
+# -- Compiling architecture rtl of dram_iface
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../top_level.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/../top_level.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity top_level
+# -- Compiling architecture rtl of top_level
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vcom -2008 -work work {/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd}
+# Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 17:27:22 on May 13,2026
+# vcom -reportprogress 300 -2008 -work work /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd 
+# -- Loading package STANDARD
+# -- Loading package TEXTIO
+# -- Loading package std_logic_1164
+# -- Loading package NUMERIC_STD
+# -- Compiling entity tb_system_integration
+# -- Compiling architecture sim of tb_system_integration
+# -- Loading entity dram_iface
+# -- Loading entity dram_controller
+# End time: 17:27:22 on May 13,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# 
+# vsim -t 1ps -L altera -L lpm -L sgate -L altera_mf -L altera_lnsim -L cyclonev -L rtl_work -L work -voptargs="+acc"  tb_system_integration
+# vsim -t 1ps -L altera -L lpm -L sgate -L altera_mf -L altera_lnsim -L cyclonev -L rtl_work -L work -voptargs=""+acc"" tb_system_integration 
+# Start time: 17:27:22 on May 13,2026
+# Loading std.standard
+# Loading std.textio(body)
+# Loading ieee.std_logic_1164(body)
+# Loading ieee.numeric_std(body)
+# Loading work.tb_system_integration(sim)
+# Loading work.dram_iface(rtl)
+# Loading work.bin2hex(rtl)
+# Loading work.dram_controller(rtl)
+# 
+# add wave *
+# view structure
+# .main_pane.structure.interior.cs.body.struct
+# view signals
+# .main_pane.objects.interior.cs.body.tree
+# run -all
+# ** Warning: (vsim-3116) Problem reading symbols from linux-gate.so.1 : can not open ELF file.
+# ** Note: >>> MUDANDO SW PARA ENDERECO 1 <<<
+#    Time: 1524500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> ESCREVENDO DADO 5 NO ENDERECO 1 <<<
+#    Time: 1820500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> MUDANDO SW PARA ENDERECO 2 <<<
+#    Time: 9443500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> VOLTANDO PARA ENDERECO 1 <<<
+#    Time: 9737500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> SIMULACAO CONCLUIDA <<<
+#    Time: 10031500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Failure: Fim do Testbench
+#    Time: 10031500 ps  Iteration: 0  Process: /tb_system_integration/line__96 File: /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd
+# Break in Process line__96 at /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd line 145
+add wave -position insertpoint  \
+sim:/tb_system_integration/UUT_CONTROLLER/state
+restart
+run -all
+# ** Warning: (vsim-3116) Problem reading symbols from linux-gate.so.1 : can not open ELF file.
+# ** Note: >>> MUDANDO SW PARA ENDERECO 1 <<<
+#    Time: 1524500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> ESCREVENDO DADO 5 NO ENDERECO 1 <<<
+#    Time: 1820500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> MUDANDO SW PARA ENDERECO 2 <<<
+#    Time: 9443500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> VOLTANDO PARA ENDERECO 1 <<<
+#    Time: 9737500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Note: >>> SIMULACAO CONCLUIDA <<<
+#    Time: 10031500 ps  Iteration: 0  Instance: /tb_system_integration
+# ** Failure: Fim do Testbench
+#    Time: 10031500 ps  Iteration: 0  Process: /tb_system_integration/line__96 File: /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd
+# Break in Process line__96 at /home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/tb_system_integration.vhd line 145
+# End time: 17:43:06 on May 13,2026, Elapsed time: 0:15:44
+# Errors: 0, Warnings: 2

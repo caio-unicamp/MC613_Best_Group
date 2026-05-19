@@ -45,9 +45,12 @@ architecture rtl of dram_iface is
     
     -- Registrador para armazenar o dado lido
     signal data_reg : std_logic_vector(7 downto 0);
+	 signal data_reg_rd : std_logic_vector(3 downto 0);
 
-    -- Sinal auxiliar para o HEX5
+    -- Sinais auxiliares para o HEX5 e Botão
     signal hex5_in  : std_logic_vector(3 downto 0);
+    signal k3_now   : std_logic;
+    signal k3_last  : std_logic;
 
     -- Declaração do componente bin2hex
     component bin2hex is
@@ -65,17 +68,29 @@ begin
         if rst = '0' then 
             state <= ST_RESET;
             sw_reg <= (others => '0');
-            data_reg <= (others => '0');
+            data_reg_rd <= (others => '0');
+				k3_now <= '1';
+            k3_last <= '1';
             
         elsif rising_edge(clk) then
             state <= next_state;
+				
+				-- Filtro de borda do botão
+            k3_now <= KEY(3);
+            k3_last <= k3_now;
             
             -- Atualiza referência de chaves e o dado lido ao final de uma leitura
-            if state = ST_WAIT_READ and ready = '1' then
+            if (state = ST_WAIT_READ or state = ST_WAIT_WRITE) and ready = '1' then
+                -- Ignora data(7 downto 4) forçando "0000", armazena apenas data(3 downto 0)
+					 
+					 -- Atualiza o registro de endereço para saber que esta requisição já foi atendida
                 sw_reg <= SW(9 downto 4);
                 
-                -- Ignora data(7 downto 4) forçando "0000", armazena apenas data(3 downto 0)
-                data_reg <= "0000" & data(3 downto 0);
+                -- Se foi uma leitura, salva o dado que veio da memória no display
+                if state = ST_WAIT_READ then
+                    -- Ignora data(7 downto 4) forçando "0000", armazena apenas data(3 downto 0)
+                    data_reg_rd <= data(3 downto 0);
+                end if;
             end if;
         end if;
     end process;
@@ -94,7 +109,7 @@ begin
                 end if;
 
             when ST_READY =>
-                if KEY(3) = '0' and ready = '1' then
+                if (k3_last = '1' and k3_now = '0') and ready = '1' then
                     next_state <= ST_REQ_WRITE;
                     
                 -- Leitura: Mudança nos switches de ENDEREÇO (SW[9:4])
@@ -103,7 +118,10 @@ begin
                 end if;
 
             when ST_REQ_WRITE =>
-                next_state <= ST_WAIT_WRITE;
+                -- Espera o controlador aceitar o pedido antes de soltar o REQ
+                if ready = '0' then
+                    next_state <= ST_WAIT_WRITE;
+                end if;
 
             when ST_WAIT_WRITE =>
                 if ready = '1' then
@@ -113,7 +131,9 @@ begin
                 end if;
 
             when ST_REQ_READ =>
-                next_state <= ST_WAIT_READ;
+                if ready = '0' then
+                    next_state <= ST_WAIT_READ;
+                end if;
 
             when ST_WAIT_READ =>
                 if ready = '1' then
@@ -152,9 +172,9 @@ begin
     inst_hex4: bin2hex port map (BIN => SW(7 downto 4), HEX => HEX4);
 
     -- HEX1 exibirá "0" constante, pois forçamos "0000" em data_reg(7 downto 4)
-    inst_hex1: bin2hex port map (BIN => data_reg(7 downto 4), HEX => HEX1);
+    inst_hex1: bin2hex port map (BIN => data_reg_rd, HEX => HEX1);
     
     -- HEX0 exibe o dado efetivo lido da memória (apenas os 4 bits da direita)
-    inst_hex0: bin2hex port map (BIN => data_reg(3 downto 0), HEX => HEX0);
+    inst_hex0: bin2hex port map (BIN => SW(3 downto 0), HEX => HEX0);
 
 end rtl;
