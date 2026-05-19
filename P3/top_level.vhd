@@ -13,7 +13,7 @@ entity top_level is
         HEX1     : out std_logic_vector(6 downto 0);
         HEX4     : out std_logic_vector(6 downto 0);
         HEX5     : out std_logic_vector(6 downto 0);
-        LEDR     : out std_logic_vector(9 downto 8);
+        LEDR     : out std_logic_vector(9 downto 0);
         
         -- =========================================================
         -- Pinos Físicos da SDRAM (Conectam-se ao chip na placa)
@@ -24,8 +24,8 @@ entity top_level is
         DRAM_CAS_N : out   std_logic;
         DRAM_CKE   : out   std_logic;
         DRAM_CS_N  : out   std_logic;
-        DRAM_LDQM   : out   std_logic;
-		  DRAM_UDQM   : out   std_logic;
+        DRAM_LDQM  : out   std_logic;
+        DRAM_UDQM  : out   std_logic;
         DRAM_DQ    : inout std_logic_vector(15 downto 0);
         DRAM_RAS_N : out   std_logic;
         DRAM_WE_N  : out   std_logic
@@ -38,6 +38,16 @@ architecture rtl of top_level is
     -- Declaração dos Componentes
     -- =========================================================================
     
+    -- Componente do PLL (Você deve gerar este IP no Quartus)
+    component pll is
+        port (
+            refclk   : in  std_logic; -- Entrada: 50 MHz
+            rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
+            outclk_0 : out std_logic; -- Saída: 143 MHz
+				outclk_1 : out std_logic; -- Saída: 143 MHz
+            locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
+        );
+    end component;
 
     component dram_iface is
         port (
@@ -57,7 +67,7 @@ architecture rtl of top_level is
         );
     end component;
 
-    component dram_controller is
+    component dram_controller_novo is
         port (
             clk        : in    std_logic;
             rst        : in    std_logic;
@@ -72,8 +82,9 @@ architecture rtl of top_level is
             dram_cas_n : out   std_logic;
             dram_cke   : out   std_logic;
             dram_cs_n  : out   std_logic;
-            dram_dqm   : out   std_logic;    
-            dram_dq    : inout std_logic_vector(7 downto 0);
+            dram_ldqm   : out   std_logic;
+				dram_udqm   : out   std_logic;				
+            dram_dq    : inout std_logic_vector(15 downto 0);
             dram_ras_n : out   std_logic;    
             dram_we_n  : out   std_logic
         );
@@ -84,6 +95,9 @@ architecture rtl of top_level is
     -- =========================================================================
     
     -- Sinais de Clock e Reset
+    signal clk_143    : std_logic;
+	 signal clk_143_shift    : std_logic;
+    signal pll_locked : std_logic;
     signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
 
     -- Sinais de Controle
@@ -96,22 +110,28 @@ architecture rtl of top_level is
     signal data_bus      : std_logic_vector(7 downto 0);
     signal ctrl_data_out : std_logic_vector(7 downto 0);
 
-    -- Sinais para o "esticador de pulso" dos LEDs
-    signal led9_cnt : integer range 0 to 14300000 := 0; -- Ajustado para 143MHz (0.1s = 14.3 milhões de ciclos)
-    signal led9_on  : std_logic := '0';
-
 begin
 
-    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado.
-    sys_rst_n <= KEY(0);
+    -- =========================================================================
+    -- Instanciação do PLL e Lógica de Reset
+    -- =========================================================================
+    
+    -- A maioria dos IPs de PLL da Altera espera um reset ativo em ALTO.
+    -- Como KEY(0) é ativo em BAIXO, invertemos o sinal para resetar o PLL.
+    inst_pll: pll
+        port map (
+            refclk   => CLOCK_50,
+            rst      => not KEY(0),
+            outclk_0 => clk_143,
+				outclk_1 => clk_143_shift,
+            locked   => pll_locked
+        );
+
+    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado AND o PLL estiver travado.
+    sys_rst_n <= KEY(0) and pll_locked;
 
     -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
-    DRAM_CLK <= CLOCK_50;
-	 
-	 DRAM_LDQM<='0';
-	 DRAM_UDQM<='0';
-	 
-	 DRAM_DQ(15 downto 8)<=(others => 'Z');
+    DRAM_CLK <= clk_143_shift;
 
     -- =========================================================================
     -- Lógica do Barramento Interno (Tri-State)
@@ -123,7 +143,7 @@ begin
     -- =========================================================================
     inst_iface: dram_iface
         port map (
-            clk      => CLOCK_50,     -- Atualizado para o novo clock
+            clk      => clk_143,     -- Atualizado para o novo clock
             rst      => sys_rst_n,   -- Reset sincronizado com o PLL
             SW       => SW,
             KEY      => KEY,
@@ -141,9 +161,9 @@ begin
     -- =========================================================================
     -- Instanciação do dram_controller
     -- =========================================================================
-    inst_controller: dram_controller
+    inst_controller: dram_controller_novo
         port map (
-            clk        => CLOCK_50,    -- Atualizado para o novo clock
+            clk        => clk_143,    -- Atualizado para o novo clock
             rst        => sys_rst_n,  -- Reset sincronizado com o PLL
             address    => addr_sig,
             data_in    => data_bus,    
@@ -158,31 +178,15 @@ begin
             dram_cas_n => DRAM_CAS_N,
             dram_cke   => DRAM_CKE,
             dram_cs_n  => DRAM_CS_N,
-            dram_dqm   => open,
-            dram_dq    => DRAM_DQ(7 downto 0),
+            dram_ldqm   => DRAM_LDQM,
+				dram_udqm   => DRAM_UDQM,
+            dram_dq    => DRAM_DQ,
             dram_ras_n => DRAM_RAS_N,
             dram_we_n  => DRAM_WE_N
         );
 
-    -- =========================================================================
-    -- Debug Visual
-    -- =========================================================================
-    process(CLOCK_50)
-    begin
-        if rising_edge(CLOCK_50) then
-            if req_sig = '1' then
-                led9_cnt <= 14300000;
-                led9_on  <= '1';
-            elsif led9_cnt > 0 then
-                led9_cnt <= led9_cnt - 1;
-                led9_on  <= '1';
-            else
-                led9_on  <= '0';
-            end if;
-        end if;
-    end process;
-
-    LEDR(9) <= led9_on;
+    LEDR(9) <= req_sig;
     LEDR(8) <= wEn_sig;
+	 LEDR(7) <= ready_sig;
 
 end rtl;

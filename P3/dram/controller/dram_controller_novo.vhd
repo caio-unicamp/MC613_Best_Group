@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity dram_controller is
+entity dram_controller_novo is
     port (
         clk      : in    std_logic;
         rst      : in    std_logic;
@@ -20,14 +20,15 @@ entity dram_controller is
         dram_cas_n : out   std_logic;
         dram_cke   : out   std_logic;
         dram_cs_n  : out   std_logic;
-        dram_dqm   : out   std_logic;    
-        dram_dq    : inout std_logic_vector(7 downto 0);
+        dram_udqm  : out   std_logic; -- NOVO
+        dram_ldqm  : out   std_logic; -- NOVO    
+        dram_dq    : inout std_logic_vector(15 downto 0);
         dram_ras_n : out   std_logic;    
         dram_we_n  : out   std_logic
     );
 end entity;
 
-architecture rtl of dram_controller is
+architecture rtl of dram_controller_novo is
 
     type state_type is (
         S_INIT_WAIT, S_INIT_PRECHARGE, S_INIT_REF_LOOP, S_INIT_LOAD_MODE, S_WAIT_MRD,
@@ -48,14 +49,14 @@ architecture rtl of dram_controller is
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
     -- Constantes de Temporização
-    constant T_200US  : integer := 10000; 
+    constant T_200US  : integer := 28600; 
     constant T_RCD    : integer := 2;     
     constant T_MRD    : integer := 2;     
     constant T_CAS    : integer := 3;     
     constant T_DPL    : integer := 2;     
     constant T_RP     : integer := 2;     
-    constant T_RC     : integer := 4;     
-    constant T_REFI   : integer := 390;  
+    constant T_RC     : integer := 9;     
+    constant T_REFI   : integer := 1100;  
 
     -- Sinais de Controle (Gerados pela Lógica Combinacional para o Datapath)
     signal load_delay    : std_logic;
@@ -85,23 +86,38 @@ architecture rtl of dram_controller is
     signal sdram_cmd      : std_logic_vector(3 downto 0);
     signal dram_addr_comb : std_logic_vector(12 downto 0);
     signal dram_ba_comb   : std_logic_vector(1 downto 0);
+	 
+	 signal data_out_reg : std_logic_vector(7 downto 0);
+    signal latch_read   : std_logic;
 
 begin
 
     -- Mapeamento dos pinos fixos e de comando
     dram_cke   <= '1'; 
-    dram_dqm   <= '0'; 
     dram_cs_n  <= sdram_cmd(3);
     dram_ras_n <= sdram_cmd(2);
     dram_cas_n <= sdram_cmd(1);
     dram_we_n  <= sdram_cmd(0);
+	 
+	 dram_udqm <= '0' when (req_addr(0) = '1') else '1';
+    dram_ldqm <= '1' when (req_addr(0) = '1') else '0';
     
     dram_addr  <= dram_addr_comb;
     dram_ba    <= dram_ba_comb;
 
     -- Buffer Tri-state
-    dram_dq <= dq_out when dq_oe = '1' else (others => 'Z');
-
+    process(state, req_data, req_addr)
+    begin
+        if (state = S_WRITE_CMD or state = S_WAIT_DPL) then
+            if (req_addr(0) = '1') then
+                dram_dq <= req_data & x"00";
+            else
+                dram_dq <= x"00" & req_data;
+            end if;
+        else
+            dram_dq <= (others => 'Z');
+        end if;
+    end process;
 
     -- Apenas muda o estado
     process(clk, rst)
@@ -126,14 +142,22 @@ begin
             req_addr      <= (others => '0');
             req_data      <= (others => '0');
             req_is_w      <= '0';
-            data_out      <= (others => '0');
             dq_out        <= (others => '0');
             dq_oe         <= '0';
+				data_out_reg <= (others => '0');
             
         elsif rising_edge(clk) then
             -- Decremento Automático
             if delay_cnt > 0 then
                 delay_cnt <= delay_cnt - 1;
+            end if;
+				
+				if latch_read = '1' then
+                if (req_addr(0) = '1') then
+                    data_out_reg <= dram_dq(15 downto 8);
+                else
+                    data_out_reg <= dram_dq(7 downto 0);
+                end if;
             end if;
 
             if not is_init then    
@@ -169,11 +193,7 @@ begin
                 req_data <= data_in;
                 req_is_w <= wEn;
             end if;
-
-            if latch_data = '1' then
-                data_out <= dram_dq;
-            end if;
-
+           
             if update_dq_out = '1' then
                 dq_out <= req_data;
             end if;
@@ -212,6 +232,8 @@ begin
         latch_data     <= '0';
         set_dq_oe      <= '0';
         update_dq_out  <= '0';
+		  latch_read <= '0';
+        data_out   <= data_out_reg;
 
         -- 3.2 Lógica de Próximo Estado e Saídas
         case state is
@@ -280,21 +302,21 @@ begin
             when S_READ_CMD =>
                 sdram_cmd <= CMD_RD;
                 dram_ba_comb <= req_addr(25 downto 24);  
-                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(9 downto 0); 
+                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(10 downto 1);
                 load_delay <= '1';
-                next_delay_val <= T_CAS-1;
+                next_delay_val <= T_CAS+1;
                 next_state <= S_WAIT_CAS;
 
             when S_WAIT_CAS =>
                 if delay_cnt = 0 then
-                    latch_data <= '1'; -- Avisa o Datapath para capturar o pino dram_dq
+						  latch_read <= '1';
                     next_state <= S_PRECHARGE;
                 end if;
 
             when S_WRITE_CMD =>
                 sdram_cmd <= CMD_WR;
                 dram_ba_comb <= req_addr(25 downto 24);  
-                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(9 downto 0);
+                dram_addr_comb <= '0' & req_addr(10) & '0' & req_addr(10 downto 1);
                 
                 set_dq_oe <= '1';
                 update_dq_out <= '1';
