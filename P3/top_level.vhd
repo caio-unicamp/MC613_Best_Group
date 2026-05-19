@@ -24,8 +24,9 @@ entity top_level is
         DRAM_CAS_N : out   std_logic;
         DRAM_CKE   : out   std_logic;
         DRAM_CS_N  : out   std_logic;
-        DRAM_DQM   : out   std_logic;
-        DRAM_DQ    : inout std_logic_vector(7 downto 0);
+        DRAM_LDQM   : out   std_logic;
+		  DRAM_UDQM   : out   std_logic;
+        DRAM_DQ    : inout std_logic_vector(15 downto 0);
         DRAM_RAS_N : out   std_logic;
         DRAM_WE_N  : out   std_logic
     );
@@ -37,15 +38,6 @@ architecture rtl of top_level is
     -- Declaração dos Componentes
     -- =========================================================================
     
-    -- Componente do PLL (Você deve gerar este IP no Quartus)
-    component pll is
-        port (
-            refclk   : in  std_logic; -- Entrada: 50 MHz
-            rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
-            outclk_0 : out std_logic; -- Saída: 143 MHz
-            locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
-        );
-    end component;
 
     component dram_iface is
         port (
@@ -92,8 +84,6 @@ architecture rtl of top_level is
     -- =========================================================================
     
     -- Sinais de Clock e Reset
-    signal clk_143    : std_logic;
-    signal pll_locked : std_logic;
     signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
 
     -- Sinais de Controle
@@ -112,25 +102,16 @@ architecture rtl of top_level is
 
 begin
 
-    -- =========================================================================
-    -- Instanciação do PLL e Lógica de Reset
-    -- =========================================================================
-    
-    -- A maioria dos IPs de PLL da Altera espera um reset ativo em ALTO.
-    -- Como KEY(0) é ativo em BAIXO, invertemos o sinal para resetar o PLL.
-    inst_pll: pll
-        port map (
-            refclk   => CLOCK_50,
-            rst      => not KEY(0),
-            outclk_0 => clk_143,
-            locked   => pll_locked
-        );
-
-    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado AND o PLL estiver travado.
-    sys_rst_n <= KEY(0) and pll_locked;
+    -- O reset do sistema só libera ('1') quando o botão não estiver pressionado.
+    sys_rst_n <= KEY(0);
 
     -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
-    DRAM_CLK <= clk_143;
+    DRAM_CLK <= CLOCK_50;
+	 
+	 DRAM_LDQM<='0';
+	 DRAM_UDQM<='0';
+	 
+	 DRAM_DQ(15 downto 8)<=(others => 'Z');
 
     -- =========================================================================
     -- Lógica do Barramento Interno (Tri-State)
@@ -142,7 +123,7 @@ begin
     -- =========================================================================
     inst_iface: dram_iface
         port map (
-            clk      => clk_143,     -- Atualizado para o novo clock
+            clk      => CLOCK_50,     -- Atualizado para o novo clock
             rst      => sys_rst_n,   -- Reset sincronizado com o PLL
             SW       => SW,
             KEY      => KEY,
@@ -162,7 +143,7 @@ begin
     -- =========================================================================
     inst_controller: dram_controller
         port map (
-            clk        => clk_143,    -- Atualizado para o novo clock
+            clk        => CLOCK_50,    -- Atualizado para o novo clock
             rst        => sys_rst_n,  -- Reset sincronizado com o PLL
             address    => addr_sig,
             data_in    => data_bus,    
@@ -177,8 +158,8 @@ begin
             dram_cas_n => DRAM_CAS_N,
             dram_cke   => DRAM_CKE,
             dram_cs_n  => DRAM_CS_N,
-            dram_dqm   => DRAM_DQM,
-            dram_dq    => DRAM_DQ,
+            dram_dqm   => open,
+            dram_dq    => DRAM_DQ(7 downto 0),
             dram_ras_n => DRAM_RAS_N,
             dram_we_n  => DRAM_WE_N
         );
@@ -186,9 +167,9 @@ begin
     -- =========================================================================
     -- Debug Visual
     -- =========================================================================
-    process(clk_143)
+    process(CLOCK_50)
     begin
-        if rising_edge(clk_143) then
+        if rising_edge(CLOCK_50) then
             if req_sig = '1' then
                 led9_cnt <= 14300000;
                 led9_on  <= '1';

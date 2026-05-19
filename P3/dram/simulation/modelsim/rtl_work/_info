@@ -1,0 +1,253 @@
+m255
+K4
+z2
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 d/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/simulation/modelsim
+Ebin2hex
+Z1 w1778095695
+Z2 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z3 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+R0
+Z4 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd
+Z5 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd
+l0
+L7
+V1Y;me]]dNd1V7d22f9iN73
+!s100 d6QCD>AHGD2o=lND]Kc?>1
+Z6 OV;C;10.5b;63
+33
+Z7 !s110 1778693954
+!i10b 1
+Z8 !s108 1778693954.000000
+Z9 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd|
+Z10 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/utils/bin2hex.vhd|
+!i113 1
+Z11 o-2008 -work work
+Z12 tExplicit 1 CvgOpt 0
+Artl
+R2
+R3
+DEx4 work 7 bin2hex 0 22 1Y;me]]dNd1V7d22f9iN73
+l15
+L14
+VDWO@DHGih`kUA?AkLV58L2
+!s100 9ON6LX20HBGP5oQIW_V7W1
+R6
+33
+R7
+!i10b 1
+R8
+R9
+R10
+!i113 1
+R11
+R12
+Edram_controller
+Z13 w1778693006
+Z14 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
+R2
+R3
+R0
+Z15 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd
+Z16 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd
+l0
+L5
+Va8W<7bmiPbE9l;>JNfjXF3
+!s100 mz7OJ^WYcK7HIgBL0U>770
+R6
+33
+R7
+!i10b 1
+R8
+Z17 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd|
+Z18 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/controller/dram_controller.vhd|
+!i113 1
+R11
+R12
+Artl
+R14
+R2
+R3
+DEx4 work 15 dram_controller 0 22 a8W<7bmiPbE9l;>JNfjXF3
+l80
+L30
+VO1aD6c`lfl?:zJ92mO3?V2
+!s100 K6a;fZ@FJbO01K^:THWcb1
+R6
+33
+R7
+!i10b 1
+R8
+R17
+R18
+!i113 1
+R11
+R12
+Edram_iface
+Z19 w1778693609
+R14
+R2
+R3
+R0
+Z20 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd
+Z21 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd
+l0
+L5
+VXz4]M_?g655Ki7C^O1d692
+!s100 ^h3;9nn>eEHFzE1W^Sj3_2
+R6
+33
+R7
+!i10b 1
+R8
+Z22 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd|
+Z23 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/iface/dram_iface.vhd|
+!i113 1
+R11
+R12
+Artl
+R14
+R2
+R3
+DEx4 work 10 dram_iface 0 22 Xz4]M_?g655Ki7C^O1d692
+l62
+L29
+VcVgZnmaScLRTKz^Nn1oY[1
+!s100 U3zdYW[74@fFF:D`WCoL70
+R6
+33
+R7
+!i10b 1
+R8
+R22
+R23
+!i113 1
+R11
+R12
+Epll
+Z24 w1778692834
+R2
+R3
+Z25 DPx12 altera_lnsim 23 altera_lnsim_components 0 22 dfin^_@l97Ngz6cK0kjS62
+R0
+Z26 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/pll_sim/pll.vho
+Z27 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/pll_sim/pll.vho
+l0
+L33
+VSVS^2I`DA7m^8JK3iCbD=2
+!s100 Bd1aEK;52DW0meJ7M5aKX3
+R6
+32
+R7
+!i10b 1
+R8
+Z28 !s90 -reportprogress|300|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/pll_sim/pll.vho|
+Z29 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/pll_sim/pll.vho|
+!i113 1
+R12
+Artl
+R2
+R3
+R25
+DEx4 work 3 pll 0 22 SVS^2I`DA7m^8JK3iCbD=2
+l50
+L43
+VdnE0D=l`k]<TC543jDPbX1
+!s100 zLT0nilULfL]0GT0JPiVW3
+R6
+32
+R7
+!i10b 1
+R8
+R28
+R29
+!i113 1
+R12
+Etop_level
+Z30 w1778693007
+R14
+R2
+R3
+R0
+Z31 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/../top_level.vhd
+Z32 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/../top_level.vhd
+l0
+L5
+V3A7@NDYb2[PEFHoGL5DCW1
+!s100 aekil?ISlZ==jH^d9[?z[1
+R6
+33
+R7
+!i10b 1
+R8
+Z33 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/../top_level.vhd|
+Z34 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/../top_level.vhd|
+!i113 1
+R11
+R12
+Artl
+R14
+R2
+R3
+Z35 DEx4 work 9 top_level 0 22 3A7@NDYb2[PEFHoGL5DCW1
+l113
+L34
+VeJ8]JJADdiofOX5OaUdZ61
+!s100 YK7aJ_HY;]:jgEo=l@?_52
+R6
+33
+R7
+!i10b 1
+R8
+R33
+R34
+!i113 1
+R11
+R12
+Etop_level_tb
+Z36 w1778693862
+R14
+R2
+R3
+R0
+Z37 8/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/testes/top_level_tb.vhd
+Z38 F/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/testes/top_level_tb.vhd
+l0
+L5
+VAhW`>2e5W6CQHHY`^bdf53
+!s100 [U0CCB[_@dQaUB_ARX:]o0
+R6
+33
+R7
+!i10b 1
+R8
+Z39 !s90 -reportprogress|300|-2008|-work|work|/home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/testes/top_level_tb.vhd|
+Z40 !s107 /home/c-ec2024/ra177700/MC613_Best_Group/P3/dram/testes/top_level_tb.vhd|
+!i113 1
+R11
+R12
+Asim
+R35
+R14
+R2
+R3
+DEx4 work 12 top_level_tb 0 22 AhW`>2e5W6CQHHY`^bdf53
+l37
+L8
+VjVh>]ReRSF6@YahlbHFk;2
+!s100 <WHiWlehj5FboO?OB<S[i2
+R6
+33
+R7
+!i10b 1
+R8
+R39
+R40
+!i113 1
+R11
+R12

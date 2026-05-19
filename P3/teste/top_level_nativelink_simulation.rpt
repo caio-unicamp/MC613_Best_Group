@@ -1,0 +1,24 @@
+Info: Start Nativelink Simulation process
+executing command line: ip-make-simscript --nativelink-mode --output-directory=top_level_iputf_input --spd=/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/pll.spd 
+
+========= EDA Simulation Settings =====================
+
+Sim Mode              :  RTL
+Family                :  cyclonev
+Quartus root          :  /opt/altera/17.1/quartus/linux64/
+Quartus sim root      :  /opt/altera/17.1/quartus/eda/sim_lib
+Simulation Tool       :  modelsim-altera
+Simulation Language   :  vhdl
+Version               :  93
+Simulation Mode       :  GUI
+Sim Output File       :  
+Sim SDF file          :  
+Sim dir               :  simulation/modelsim
+
+=======================================================
+
+Info: Starting NativeLink simulation with ModelSim-Altera software
+Sourced NativeLink script /opt/altera/17.1/quartus/common/tcl/internal/nativelink/modelsim.tcl
+Warning: File top_level_run_msim_rtl_vhdl.do already exists - backing up current file as top_level_run_msim_rtl_vhdl.do.bak10
+Info: Spawning ModelSim-Altera Simulation software 
+Info: NativeLink simulation flow was successful

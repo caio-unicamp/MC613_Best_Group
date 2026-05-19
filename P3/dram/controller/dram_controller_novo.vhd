@@ -48,14 +48,14 @@ architecture rtl of dram_controller is
     constant CMD_MRS : std_logic_vector(3 downto 0) := "0000";
 
     -- Constantes de Temporização
-    constant T_200US  : integer := 28600; 
+    constant T_200US  : integer := 10000; 
     constant T_RCD    : integer := 2;     
     constant T_MRD    : integer := 2;     
     constant T_CAS    : integer := 3;     
     constant T_DPL    : integer := 2;     
     constant T_RP     : integer := 2;     
-    constant T_RC     : integer := 9;     
-    constant T_REFI   : integer := 1100;  
+    constant T_RC     : integer := 4;     
+    constant T_REFI   : integer := 390;  
 
     -- Sinais de Controle (Gerados pela Lógica Combinacional para o Datapath)
     signal load_delay    : std_logic;
