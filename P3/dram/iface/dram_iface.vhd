@@ -28,26 +28,23 @@ end dram_iface;
 
 architecture rtl of dram_iface is
 
-    -- Definição dos estados da FSM
+    -- Adicionamos estados de SETUP para garantir 1 ciclo de estabilidade no endereço
     type state_type is (
         ST_RESET,
         ST_READY,
+        ST_SETUP_WRITE,
         ST_REQ_WRITE,
         ST_WAIT_WRITE,
+        ST_SETUP_READ,
         ST_REQ_READ,
         ST_WAIT_READ
     );
 
     signal state, next_state : state_type;
     
-    -- Registrador para detectar mudança no endereço
     signal sw_reg   : std_logic_vector(9 downto 4);
-    
-    -- Registrador para armazenar o dado lido
-    signal data_reg : std_logic_vector(7 downto 0);
-	 signal data_reg_rd : std_logic_vector(3 downto 0);
+    signal data_reg_rd : std_logic_vector(3 downto 0);
 
-    -- Sinais auxiliares para o HEX5 e Botão
     signal hex5_in  : std_logic_vector(3 downto 0);
     signal k3_now   : std_logic;
     signal k3_last  : std_logic;
@@ -56,7 +53,6 @@ architecture rtl of dram_iface is
     signal addr_latched : std_logic_vector(25 downto 0);
     signal data_latched : std_logic_vector(7 downto 0);
 
-    -- Declaração do componente bin2hex
     component bin2hex is
         port (
             BIN : in  std_logic_vector(3 downto 0);
@@ -66,26 +62,26 @@ architecture rtl of dram_iface is
 
 begin
 
+    -- =========================================================================
     -- 1. Processo Sequencial: Atualização de Estado e Registradores
+    -- =========================================================================
     process(clk, rst)
     begin
         if rst = '0' then 
             state <= ST_RESET;
             sw_reg <= (others => '0');
             data_reg_rd <= (others => '0');
-			k3_now <= '1';
+            k3_now <= '1';
             k3_last <= '1';
             addr_latched <= (others => '0');
             data_latched <= (others => '0');
             
         elsif rising_edge(clk) then
             state <= next_state;
-				
-			-- Filtro de borda do botão
             k3_last <= k3_now;
             k3_now <= KEY(3);
             
-            if state = ST_REAdY and ready = '1' then
+            if state = ST_READY and ready = '1' then
                 -- WRITE
                 if (k3_last = '1' and k3_now = '0') then
                     addr_latched <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
@@ -94,11 +90,14 @@ begin
                 -- READ
                 elsif SW(9 downto 4) /= sw_reg then
                     addr_latched <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
+                    -- FIX: Atualiza a referência de mudança ANTES da leitura.
+                    -- Isso impede que o bounce da chave cause leituras infinitas.
+                    sw_reg <= SW(9 downto 4); 
                 end if;
             end if;
 
-            if state = ST_WAIT_READ and ready = 1 then
-                sw_reg <= SW(9 downto 4);
+            if state = ST_WAIT_READ and ready = '1' then
+                -- Salva apenas o dado (sw_reg já foi atualizado no inicio)
                 data_reg_rd <= data(3 downto 0);
             end if;
         end if;
@@ -119,22 +118,23 @@ begin
 
             when ST_READY =>
                 if (k3_last = '1' and k3_now = '0') and ready = '1' then
-                    next_state <= ST_REQ_WRITE;
-                    
-                -- Leitura: Mudança nos switches de ENDEREÇO (SW[9:4])
+                    next_state <= ST_SETUP_WRITE;
                 elsif SW(9 downto 4) /= sw_reg and ready = '1' then
-                    next_state <= ST_REQ_READ;
+                    next_state <= ST_SETUP_READ;
                 end if;
 
+            -- ESTADOS NOVOS: Apenas 1 ciclo de espera para o endereço estabilizar
+            when ST_SETUP_WRITE => next_state <= ST_REQ_WRITE;
+            when ST_SETUP_READ  => next_state <= ST_REQ_READ;
+
             when ST_REQ_WRITE =>
-                -- Espera o controlador aceitar o pedido antes de soltar o REQ
                 if ready = '0' then
                     next_state <= ST_WAIT_WRITE;
                 end if;
 
             when ST_WAIT_WRITE =>
                 if ready = '1' then
-                    next_state <= ST_REQ_READ;
+                    next_state <= ST_SETUP_READ; -- Vai ler após gravar, com setup time
                 else
                     next_state <= ST_WAIT_WRITE;
                 end if;
@@ -157,31 +157,26 @@ begin
     end process;
 
     -- =========================================================================
-    -- 3. Lógica de Interface com a DRAM e Placa
+    -- 3. Lógica de Interface
     -- =========================================================================
+    -- REQ só vai para '1' DEPOIS do ciclo de Setup
     req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ or state = ST_WAIT_WRITE or state = ST_WAIT_READ) else '0';
+    
     wEn <= '1' when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else '0';
 
-    -- Mapeamento do endereço: 
-    -- SW[9] -> bit 25; SW[8:6] -> bits 23:21; SW[5:4] -> bits 1:0
     address <= addr_latched;
 
-    -- Barramento Bidirecional (Tristate Buffer)
-    -- Escreve ("0000" & SW[3:0]) na gravação, alta impedância ('Z') na leitura/espera
-    data <= data_latched when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
+    -- O dado fica disponível já durante o setup para também garantir Data Setup Time
+    data <= data_latched when (state = ST_SETUP_WRITE or state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
 
     -- =========================================================================
-    -- 4. Instanciação dos Displays usando bin2hex
+    -- 4. Instanciação dos Displays
     -- =========================================================================
-    
-    -- Ajusta os 2 bits mais significativos do endereço para entrar no módulo de 4 bits
     hex5_in <= "00" & SW(9 downto 8);
     
     inst_hex5: bin2hex port map (BIN => hex5_in,        HEX => HEX5);
     inst_hex4: bin2hex port map (BIN => SW(7 downto 4), HEX => HEX4);
-
-    inst_hex1: bin2hex port map (BIN => data_reg_rd, HEX => HEX1);
-    
+    inst_hex1: bin2hex port map (BIN => data_reg_rd,    HEX => HEX1);
     inst_hex0: bin2hex port map (BIN => SW(3 downto 0), HEX => HEX0);
 
 end rtl;
