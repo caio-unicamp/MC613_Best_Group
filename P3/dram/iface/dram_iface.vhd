@@ -52,6 +52,10 @@ architecture rtl of dram_iface is
     signal k3_now   : std_logic;
     signal k3_last  : std_logic;
 
+    -- Latches
+    signal addr_latched : std_logic_vector(25 downto 0);
+    signal data_latched : std_logic_vector(7 downto 0);
+
     -- Declaração do componente bin2hex
     component bin2hex is
         port (
@@ -69,28 +73,33 @@ begin
             state <= ST_RESET;
             sw_reg <= (others => '0');
             data_reg_rd <= (others => '0');
-				k3_now <= '1';
+			k3_now <= '1';
             k3_last <= '1';
+            addr_latched <= (others => '0');
+            data_latched <= (others => '0');
             
         elsif rising_edge(clk) then
             state <= next_state;
 				
-				-- Filtro de borda do botão
-            k3_now <= KEY(3);
+			-- Filtro de borda do botão
             k3_last <= k3_now;
+            k3_now <= KEY(3);
             
-            -- Atualiza referência de chaves e o dado lido ao final de uma leitura
-            if (state = ST_WAIT_READ or state = ST_WAIT_WRITE) and ready = '1' then
-                -- Ignora data(7 downto 4) forçando "0000", armazena apenas data(3 downto 0)
-					 
-					 -- Atualiza o registro de endereço para saber que esta requisição já foi atendida
-                sw_reg <= SW(9 downto 4);
-                
-                -- Se foi uma leitura, salva o dado que veio da memória no display
-                if state = ST_WAIT_READ then
-                    -- Ignora data(7 downto 4) forçando "0000", armazena apenas data(3 downto 0)
-                    data_reg_rd <= data(3 downto 0);
+            if state = ST_REAdY and ready = '1' then
+                -- WRITE
+                if (k3_last = '1' and k3_now = '0') then
+                    addr_latched <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
+                    data_latched <= "0000" & SW(3 downto 0);
+
+                -- READ
+                elsif SW(9 downto 4) /= sw_reg then
+                    addr_latched <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
                 end if;
+            end if;
+
+            if state = ST_WAIT_READ and ready = 1 then
+                sw_reg <= SW(9 downto 4);
+                data_reg_rd <= data(3 downto 0);
             end if;
         end if;
     end process;
@@ -98,7 +107,7 @@ begin
     -- =========================================================================
     -- 2. Processo Combinacional: Lógica de Próximo Estado
     -- =========================================================================
-    process(state, ready, KEY, SW, sw_reg)
+    process(state, ready, KEY, SW, sw_reg, k3_last, k3_now)
     begin
         next_state <= state; 
 
@@ -150,16 +159,16 @@ begin
     -- =========================================================================
     -- 3. Lógica de Interface com a DRAM e Placa
     -- =========================================================================
-    req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ) else '0';
+    req <= '1' when (state = ST_REQ_WRITE or state = ST_REQ_READ or state = ST_WAIT_WRITE or state = ST_WAIT_READ) else '0';
     wEn <= '1' when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else '0';
 
     -- Mapeamento do endereço: 
     -- SW[9] -> bit 25; SW[8:6] -> bits 23:21; SW[5:4] -> bits 1:0
-    address <= SW(9) & '0' & SW(8 downto 6) & "0000000000000000000" & SW(5 downto 4);
+    address <= addr_latched;
 
     -- Barramento Bidirecional (Tristate Buffer)
     -- Escreve ("0000" & SW[3:0]) na gravação, alta impedância ('Z') na leitura/espera
-    data <= "0000" & SW(3 downto 0) when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
+    data <= data_latched when (state = ST_REQ_WRITE or state = ST_WAIT_WRITE) else (others => 'Z');
 
     -- =========================================================================
     -- 4. Instanciação dos Displays usando bin2hex
@@ -171,10 +180,8 @@ begin
     inst_hex5: bin2hex port map (BIN => hex5_in,        HEX => HEX5);
     inst_hex4: bin2hex port map (BIN => SW(7 downto 4), HEX => HEX4);
 
-    -- HEX1 exibirá "0" constante, pois forçamos "0000" em data_reg(7 downto 4)
     inst_hex1: bin2hex port map (BIN => data_reg_rd, HEX => HEX1);
     
-    -- HEX0 exibe o dado efetivo lido da memória (apenas os 4 bits da direita)
     inst_hex0: bin2hex port map (BIN => SW(3 downto 0), HEX => HEX0);
 
 end rtl;
