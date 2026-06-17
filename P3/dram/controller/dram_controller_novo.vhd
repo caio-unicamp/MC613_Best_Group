@@ -66,7 +66,6 @@ architecture rtl of dram_controller_novo is
     signal clear_init    : std_logic;
     signal clear_refresh : std_logic;
     signal latch_req     : std_logic;
-    signal latch_data    : std_logic;
     signal set_dq_oe     : std_logic;
     signal update_dq_out : std_logic;
 
@@ -213,7 +212,7 @@ begin
     -- PROCESSO 3: Unidade de Controle FSM (Combinacional)
     -- =========================================================================
     -- Válido para VHDL-93: Todas as entradas lidas precisam estar na lista de sensibilidade
-    process(state, delay_cnt, ref_init_cnt, needs_refresh, req, req_is_w, req_addr)
+    process(state, delay_cnt, ref_init_cnt, needs_refresh, req, req_is_w, req_addr, data_out_reg)
     begin
         -- Valores Padrão
         next_state     <= state;
@@ -229,7 +228,6 @@ begin
         clear_init     <= '0';
         clear_refresh  <= '0';
         latch_req      <= '0';
-        latch_data     <= '0';
         set_dq_oe      <= '0';
         update_dq_out  <= '0';
 		  latch_read <= '0';
