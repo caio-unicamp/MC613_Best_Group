@@ -7,4 +7,3 @@
     tDPL (WRITE -> PRECHARGE)		14ns	2 ciclos
     tMRD (LOAD MODE)			14ns	2 ciclos
     
-

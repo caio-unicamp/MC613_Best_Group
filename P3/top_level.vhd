@@ -24,8 +24,9 @@ entity top_level is
         DRAM_CAS_N : out   std_logic;
         DRAM_CKE   : out   std_logic;
         DRAM_CS_N  : out   std_logic;
-        DRAM_DQM   : out   std_logic;
-        DRAM_DQ    : inout std_logic_vector(7 downto 0);
+        DRAM_LDQM  : out   std_logic;
+        DRAM_UDQM  : out   std_logic;
+        DRAM_DQ    : inout std_logic_vector(15 downto 0);
         DRAM_RAS_N : out   std_logic;
         DRAM_WE_N  : out   std_logic
     );
@@ -43,6 +44,7 @@ architecture rtl of top_level is
             refclk   : in  std_logic; -- Entrada: 50 MHz
             rst      : in  std_logic; -- Reset do PLL (Geralmente ativo em ALTO)
             outclk_0 : out std_logic; -- Saída: 143 MHz
+				outclk_1 : out std_logic; -- Saída: 143 MHz
             locked   : out std_logic  -- '1' quando a frequência estiver estabilizada
         );
     end component;
@@ -65,7 +67,7 @@ architecture rtl of top_level is
         );
     end component;
 
-    component dram_controller is
+    component dram_controller_novo is
         port (
             clk        : in    std_logic;
             rst        : in    std_logic;
@@ -80,8 +82,9 @@ architecture rtl of top_level is
             dram_cas_n : out   std_logic;
             dram_cke   : out   std_logic;
             dram_cs_n  : out   std_logic;
-            dram_dqm   : out   std_logic;    
-            dram_dq    : inout std_logic_vector(7 downto 0);
+            dram_ldqm   : out   std_logic;
+				dram_udqm   : out   std_logic;				
+            dram_dq    : inout std_logic_vector(15 downto 0);
             dram_ras_n : out   std_logic;    
             dram_we_n  : out   std_logic
         );
@@ -93,6 +96,7 @@ architecture rtl of top_level is
     
     -- Sinais de Clock e Reset
     signal clk_143    : std_logic;
+	 signal clk_143_shift    : std_logic;
     signal pll_locked : std_logic;
     signal sys_rst_n  : std_logic; -- Reset global (ativo em BAIXO)
 
@@ -119,6 +123,7 @@ begin
             refclk   => CLOCK_50,
             rst      => not KEY(0),
             outclk_0 => clk_143,
+				outclk_1 => clk_143_shift,
             locked   => pll_locked
         );
 
@@ -126,7 +131,7 @@ begin
     sys_rst_n <= KEY(0) and pll_locked;
 
     -- O clock gerado pelo PLL agora alimenta diretamente o chip físico da SDRAM
-    DRAM_CLK <= clk_143;
+    DRAM_CLK <= clk_143_shift;
 
     -- =========================================================================
     -- Lógica do Barramento Interno (Tri-State)
@@ -156,7 +161,7 @@ begin
     -- =========================================================================
     -- Instanciação do dram_controller
     -- =========================================================================
-    inst_controller: dram_controller
+    inst_controller: dram_controller_novo
         port map (
             clk        => clk_143,    -- Atualizado para o novo clock
             rst        => sys_rst_n,  -- Reset sincronizado com o PLL
@@ -173,7 +178,8 @@ begin
             dram_cas_n => DRAM_CAS_N,
             dram_cke   => DRAM_CKE,
             dram_cs_n  => DRAM_CS_N,
-            dram_dqm   => DRAM_DQM,
+            dram_ldqm   => DRAM_LDQM,
+				dram_udqm   => DRAM_UDQM,
             dram_dq    => DRAM_DQ,
             dram_ras_n => DRAM_RAS_N,
             dram_we_n  => DRAM_WE_N
@@ -181,5 +187,6 @@ begin
 
     LEDR(9) <= req_sig;
     LEDR(8) <= wEn_sig;
+	 LEDR(7) <= ready_sig;
 
 end rtl;
