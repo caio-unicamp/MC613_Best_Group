@@ -1,3 +1,0 @@
-
-
-ncvhdl -v93 "/home/c-ec2024/ra177700/MC613_Best_Group/P3/teste/pll_sim/pll.vho"
